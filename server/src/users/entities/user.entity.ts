@@ -5,9 +5,18 @@ import {
   registerEnumType,
 } from '@nestjs/graphql';
 import { CommonEntity } from 'src/common/entities/common.entity';
-import { BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  ManyToMany,
+  OneToMany,
+} from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from '@nestjs/common';
+import { Opinion } from 'src/agenda/entities/opinion.entity';
+import { Agenda } from 'src/agenda/entities/agenda.entity';
 
 export enum UserRole {
   Client = 'Client',
@@ -35,6 +44,14 @@ export class User extends CommonEntity {
   @Column({ select: false })
   @Field((type) => String)
   password: string;
+
+  @Field((type) => [Agenda])
+  @OneToMany(() => Agenda, (agenda) => agenda.author, { nullable: true })
+  agendas?: [Agenda];
+
+  @Field((type) => [Opinion])
+  @ManyToMany(() => Opinion, { nullable: true })
+  agreedOp: Opinion[];
 
   @BeforeInsert()
   @BeforeUpdate()

@@ -6,12 +6,24 @@ import { join } from 'path';
 import { User } from './users/entities/user.entity';
 import { UserModule } from './users/user.module';
 import { JwtModule } from './jwt/jwt.module';
+import { AgendaModule } from './agenda/agenda.module';
+import { ConfigModule } from '@nestjs/config';
+import { Agenda } from './agenda/entities/agenda.entity';
+import { Opinion } from './agenda/entities/opinion.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     GraphQLModule.forRoot({
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      autoSchemaFile: true,
       driver: ApolloDriver,
+      context: ({ req, extra }) => {
+        return { token: req ? req.headers['x-jwt'] : extra.token };
+      },
+    }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.test',
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
@@ -22,10 +34,12 @@ import { JwtModule } from './jwt/jwt.module';
       database: 'snackvote',
       synchronize: true,
       logging: true,
-      entities: [User],
+      entities: [User, Agenda, Opinion],
     }),
-    JwtModule.forRoot({ privateKey: 'sfasfasdfseresfs#$' }),
+    JwtModule.forRoot({ privateKey: process.env.JWT_PRIVATE_KEY }),
     UserModule,
+    AgendaModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],

@@ -4,6 +4,7 @@ import { CommonOutput } from 'src/common/dtos/output.dto';
 import { JwtService } from 'src/jwt/jwt.service';
 import { Repository } from 'typeorm';
 import { CreateUserInput } from './dtos/create-user.dto';
+import { FindUserByIdOutput } from './dtos/find-one-by-id.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
 import { User } from './entities/user.entity';
 
@@ -38,7 +39,6 @@ export class UserService {
 
   async login({ email, password }: LoginInput): Promise<LoginOutput> {
     try {
-      console.log('s');
       const user = await this.users.findOne({
         where: { email },
         select: ['id', 'password'],
@@ -57,6 +57,15 @@ export class UserService {
       return { ok: true, token };
     } catch {
       return { ok: false, error: "Couldn't get token" };
+    }
+  }
+
+  async findOneById(id: number): Promise<FindUserByIdOutput> {
+    try {
+      const user = await this.users.findOneOrFail({ where: { id } });
+      return { ok: true, user };
+    } catch {
+      return { ok: false, error: 'Unexeptable id or wrong token' };
     }
   }
 }
