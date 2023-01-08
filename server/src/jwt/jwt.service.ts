@@ -3,6 +3,11 @@ import { CONFIG_OPTIONS } from 'src/common/common.constants';
 import { JwtModuleOptions } from './jwt.interface';
 import * as jwt from 'jsonwebtoken';
 
+export enum TokenType {
+  Access = 'ACCESS',
+  Refresh = 'REFRESH',
+}
+
 @Injectable()
 export class JwtService {
   constructor(
@@ -10,11 +15,29 @@ export class JwtService {
     private readonly options: JwtModuleOptions,
   ) {}
 
-  sign(payload: object): string {
-    return jwt.sign(payload, this.options.privateKey);
+  sign(payload: object, type: TokenType): string {
+    if (type === TokenType.Access) {
+      return jwt.sign(payload, this.options.accessTokenKey, {
+        expiresIn: this.options.accessTokenExpTime,
+      });
+    } else {
+      return jwt.sign(payload, this.options.refreshTokenKey, {
+        expiresIn: this.options.refreshTokenExpTime,
+      });
+    }
   }
 
-  verify(token: string) {
-    return jwt.verify(token, this.options.privateKey);
+  verify(token: string, type: TokenType) {
+    if (type === TokenType.Access) {
+      return jwt.verify(token, this.options.accessTokenKey);
+    } else {
+      return jwt.verify(token, this.options.refreshTokenKey);
+    }
+  }
+
+  verifyExpiredAccessToken(token: string) {
+    return jwt.verify(token, this.options.accessTokenKey, {
+      ignoreExpiration: true,
+    });
   }
 }

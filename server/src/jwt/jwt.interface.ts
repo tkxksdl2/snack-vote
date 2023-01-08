@@ -1,3 +1,6 @@
 export interface JwtModuleOptions {
-  privateKey: string;
+  accessTokenKey: string;
+  accessTokenExpTime: string;
+  refreshTokenKey: string;
+  refreshTokenExpTime: string;
 }

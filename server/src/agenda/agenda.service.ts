@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PAGINATION_UNIT } from 'src/common/common.constants';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import {
@@ -10,6 +11,19 @@ import {
   FindAgendaByIdInput,
   FindAgendaByIdOutput,
 } from './dtos/find-agenda-by-id.dto';
+import { GetAllAgendasInput } from './dtos/get-all-agendas.dto';
+import {
+  GetMyAgendasInput,
+  GetmyAgendasOutput,
+} from './dtos/get-my-agendas.dto';
+import {
+  GetVotedAgendasInput,
+  GetVotedAgendasOutput,
+} from './dtos/get-voted-agendas.dto';
+import {
+  VoteOrUnvoteInput,
+  VoteOrUnvoteOutput,
+} from './dtos/vote-or-unvote.dto';
 import { Agenda } from './entities/agenda.entity';
 import { Opinion } from './entities/opinion.entity';
 
@@ -51,6 +65,109 @@ export class AgendaService {
       return { ok: true, result: newAgenda };
     } catch {
       return { ok: false, error: "Couldn't create Agenda" };
+    }
+  }
+
+  async getAllAgendas({ page }: GetAllAgendasInput) {
+    try {
+      const [agendas, count] = await this.agendas.findAndCount({
+        take: PAGINATION_UNIT,
+        skip: PAGINATION_UNIT * (page - 1),
+      });
+      const totalPage = Math.ceil(count / PAGINATION_UNIT);
+      return {
+        ok: true,
+        agendas,
+        totalPage,
+      };
+    } catch {
+      return { ok: false, error: 'Internal Server Error' };
+    }
+  }
+
+  async getMyAgendas(
+    user: User,
+    { page }: GetMyAgendasInput,
+  ): Promise<GetmyAgendasOutput> {
+    try {
+      const [agendas, count] = await this.agendas.findAndCount({
+        where: { author: { id: user.id } },
+        take: PAGINATION_UNIT,
+        skip: PAGINATION_UNIT * (page - 1),
+      });
+      return {
+        ok: true,
+        agendas,
+        totalPage: Math.ceil(count / PAGINATION_UNIT),
+      };
+    } catch (e) {
+      return { ok: false, error: "Coundn't get your agendas" };
+    }
+  }
+
+  async getVotedAgendas(
+    user: User,
+    { page }: GetVotedAgendasInput,
+  ): Promise<GetVotedAgendasOutput> {
+    try {
+      const [opinions, count] = await this.opinions.findAndCount({
+        where: {
+          votedUser: { id: user.id },
+        },
+        select: ['agenda'],
+        relations: ['agenda'],
+        take: PAGINATION_UNIT,
+        skip: PAGINATION_UNIT * (page - 1),
+      });
+      const agendas = [];
+      opinions.forEach((opinion) => {
+        agendas.push(opinion.agenda);
+      });
+      return { ok: false, agendas };
+    } catch (e) {
+      return { ok: false, error: "Coundn't get you voted agendas" };
+    }
+  }
+
+  async voteOrUnvote(
+    authUser: User,
+    { otherOpinionId, voteId }: VoteOrUnvoteInput,
+  ): Promise<VoteOrUnvoteOutput> {
+    try {
+      const votedOp = await this.opinions.findOne({
+        where: { id: voteId },
+        relations: ['votedUser'],
+      });
+      const otherOp = await this.opinions.findOne({
+        where: { id: otherOpinionId },
+        relations: ['votedUser'],
+      });
+      if (!votedOp || !otherOp) {
+        return { ok: false, error: 'Opinion with input id dose not exist' };
+      }
+      if (otherOp.votedUserId.includes(authUser.id)) {
+        return { ok: false, error: 'You alreay voted other Opinion' };
+      }
+      if (votedOp.votedUserId.includes(authUser.id)) {
+        votedOp.votedUser = votedOp.votedUser.filter((user) => {
+          return user.id !== authUser.id;
+        });
+        this.opinions.save(votedOp);
+        return {
+          ok: true,
+          message: 'Successfully unvoted opinion',
+          voteCount: votedOp.votedUser.length,
+        };
+      }
+      votedOp.votedUser.push(authUser);
+      this.opinions.save(votedOp);
+      return {
+        ok: true,
+        message: 'Successfully voted opinion',
+        voteCount: votedOp.votedUser.length,
+      };
+    } catch {
+      return { ok: false, error: "Couldn't vote to opinion" };
     }
   }
 }

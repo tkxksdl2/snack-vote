@@ -2,6 +2,7 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { CommonOutput } from 'src/common/dtos/output.dto';
 import { CreateUserInput } from './dtos/create-user.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
+import { RefreshInput, RefreshOutput } from './dtos/refresh.dto';
 import { User } from './entities/user.entity';
 import { UserService } from './user.service';
 
@@ -24,5 +25,10 @@ export class UserResolver {
     @Args('input') createUserInput: CreateUserInput,
   ): Promise<CommonOutput> {
     return this.userService.createUser(createUserInput);
+  }
+
+  @Mutation((returns) => RefreshOutput)
+  refresh(@Args('input') refreshInput: RefreshInput): Promise<RefreshOutput> {
+    return this.userService.refresh(refreshInput);
   }
 }

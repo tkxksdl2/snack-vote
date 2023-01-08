@@ -11,6 +11,7 @@ import { ConfigModule } from '@nestjs/config';
 import { Agenda } from './agenda/entities/agenda.entity';
 import { Opinion } from './agenda/entities/opinion.entity';
 import { AuthModule } from './auth/auth.module';
+import { RefreshTokens } from './users/entities/refresh-tokens.entity';
 
 @Module({
   imports: [
@@ -34,9 +35,14 @@ import { AuthModule } from './auth/auth.module';
       database: 'snackvote',
       synchronize: true,
       logging: true,
-      entities: [User, Agenda, Opinion],
+      entities: [User, Agenda, Opinion, RefreshTokens],
     }),
-    JwtModule.forRoot({ privateKey: process.env.JWT_PRIVATE_KEY }),
+    JwtModule.forRoot({
+      accessTokenKey: process.env.JWT_PRIVATE_KEY,
+      accessTokenExpTime: process.env.JWT_PRIVATE_KEY_EXP_TIME,
+      refreshTokenKey: process.env.JWT_REFRESH_KEY,
+      refreshTokenExpTime: process.env.JWT_REFRESH_KEY_EXP_TIME,
+    }),
     UserModule,
     AgendaModule,
     AuthModule,
