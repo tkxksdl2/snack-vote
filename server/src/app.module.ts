@@ -12,6 +12,8 @@ import { Agenda } from './agenda/entities/agenda.entity';
 import { Opinion } from './agenda/entities/opinion.entity';
 import { AuthModule } from './auth/auth.module';
 import { RefreshTokens } from './users/entities/refresh-tokens.entity';
+import { CommentsModule } from './comments/comments.module';
+import { Comments } from './comments/entities/comments.entity';
 
 @Module({
   imports: [
@@ -35,7 +37,7 @@ import { RefreshTokens } from './users/entities/refresh-tokens.entity';
       database: 'snackvote',
       synchronize: true,
       logging: true,
-      entities: [User, Agenda, Opinion, RefreshTokens],
+      entities: [User, Agenda, Opinion, RefreshTokens, Comments],
     }),
     JwtModule.forRoot({
       accessTokenKey: process.env.JWT_PRIVATE_KEY,
@@ -46,6 +48,7 @@ import { RefreshTokens } from './users/entities/refresh-tokens.entity';
     UserModule,
     AgendaModule,
     AuthModule,
+    CommentsModule,
   ],
   controllers: [],
   providers: [],

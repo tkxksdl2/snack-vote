@@ -1,5 +1,6 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsNumber, IsString, Max, Min } from 'class-validator';
+import { Comments } from 'src/comments/entities/comments.entity';
 import { CommonEntity } from 'src/common/entities/common.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Column, Entity, ManyToOne, OneToMany, RelationId } from 'typeorm';
@@ -27,6 +28,10 @@ export class Agenda extends CommonEntity {
 
   @RelationId('author')
   authorId: number;
+
+  @Field((type) => [Comments])
+  @OneToMany(() => Comments, (comments) => comments.agenda)
+  comments: Comments[];
 
   @Field((type) => [Opinion])
   @OneToMany(() => Opinion, (opinion) => opinion.agenda, {

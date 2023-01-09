@@ -1,4 +1,4 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsBoolean, IsString } from 'class-validator';
 import { CommonEntity } from 'src/common/entities/common.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -12,8 +12,9 @@ import {
 } from 'typeorm';
 import { Agenda } from './agenda.entity';
 
-@Entity()
+@InputType('OpinionInputtype', { isAbstract: true })
 @ObjectType()
+@Entity()
 export class Opinion extends CommonEntity {
   @Column()
   @Field((type) => String)

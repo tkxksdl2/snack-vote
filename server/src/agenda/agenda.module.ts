@@ -8,6 +8,6 @@ import { Opinion } from './entities/opinion.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([Agenda, Opinion])],
   providers: [AgendaService, AgendaResolver],
-  exports: [],
+  exports: [AgendaService],
 })
 export class AgendaModule {}

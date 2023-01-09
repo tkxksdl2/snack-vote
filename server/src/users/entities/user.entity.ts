@@ -20,6 +20,7 @@ import { Opinion } from 'src/agenda/entities/opinion.entity';
 import { Agenda } from 'src/agenda/entities/agenda.entity';
 import { IsEmail, IsString } from 'class-validator';
 import { RefreshTokens } from './refresh-tokens.entity';
+import { Comments } from '../../comments/entities/comments.entity';
 
 export enum UserRole {
   Client = 'Client',
@@ -28,7 +29,7 @@ export enum UserRole {
 
 registerEnumType(UserRole, { name: 'UserRole' });
 
-@InputType('UserInputType', { isAbstract: true })
+@InputType('UserInputtype', { isAbstract: true })
 @ObjectType()
 @Entity()
 export class User extends CommonEntity {
@@ -52,7 +53,7 @@ export class User extends CommonEntity {
   @IsString()
   password: string;
 
-  @Field((type) => RefreshTokens)
+  @Field((type) => RefreshTokens, { nullable: true })
   @OneToOne(() => RefreshTokens, (ref) => ref.user, { nullable: true })
   refreshToken?: RefreshTokens;
 
@@ -62,7 +63,11 @@ export class User extends CommonEntity {
 
   @Field((type) => [Opinion])
   @ManyToMany(() => Opinion, { nullable: true })
-  votedOp: Opinion[];
+  votedOp?: Opinion[];
+
+  @Field((type) => [Comments])
+  @OneToMany(() => Comments, (comments) => comments.author, { nullable: true })
+  comments?: Comments[];
 
   @BeforeInsert()
   @BeforeUpdate()
