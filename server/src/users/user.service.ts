@@ -7,10 +7,11 @@ import { CreateUserInput } from './dtos/create-user.dto';
 import { FindUserByIdOutput } from './dtos/find-one-by-id.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
 import { RefreshTokens } from './entities/refresh-tokens.entity';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { RefreshInput, RefreshOutput } from './dtos/refresh.dto';
 import { use } from 'passport';
+import { DeleteUserInput, DeleteUserOutput } from './dtos/delete-user.dto';
 
 @Injectable()
 export class UserService {
@@ -40,6 +41,32 @@ export class UserService {
       return { ok: true };
     } catch {
       return { ok: false, error: "Couldn't create User" };
+    }
+  }
+
+  async deleteUser(
+    me: User,
+    { id }: DeleteUserInput,
+  ): Promise<DeleteUserOutput> {
+    try {
+      const user = await this.users.findOne({
+        where: { id },
+        relations: ['agendas', 'comments'],
+      });
+      if (!user) {
+        return { ok: false, error: 'User does not exist.' };
+      }
+      if (me.role !== UserRole.Admin && user.id !== me.id) {
+        return {
+          ok: false,
+          error: "You don't have permission to delete this User",
+        };
+      }
+      await this.users.softRemove(user);
+      return { ok: true };
+    } catch (e) {
+      console.log(e);
+      return { ok: false, error: "Couldn't delete User" };
     }
   }
 

@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AgendaService } from 'src/agenda/agenda.service';
 import { PAGINATION_UNIT_COMMENTS } from 'src/common/common.constants';
-import { User } from 'src/users/entities/user.entity';
+import { User, UserRole } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import {
   CreateCommentsInput,
   CreateCommentsOutput,
 } from './dtos/create-comments.dtos';
+import {
+  DeleteCommentsInput,
+  DeleteCommentsOutput,
+} from './dtos/delete-comments.dto';
 import {
   GetCommentsByAgendaInput,
   GetCommentsByAgendaOutput,
@@ -24,7 +28,10 @@ export class CommentsService {
   ) {}
 
   async findCommentsById(id: number): Promise<Comments> {
-    return await this.comments.findOne({ where: { id } });
+    return await this.comments.findOne({
+      where: { id },
+      relations: ['author'],
+    });
   }
 
   async createComments(
@@ -56,10 +63,10 @@ export class CommentsService {
     }
   }
 
-  async getCommentsByAgenda({
-    agendaId,
-    page,
-  }: GetCommentsByAgendaInput): Promise<GetCommentsByAgendaOutput> {
+  async getCommentsByAgenda(
+    user,
+    { agendaId, page }: GetCommentsByAgendaInput,
+  ): Promise<GetCommentsByAgendaOutput> {
     try {
       const { ok, error } = await this.agendaService.findAgendaById({
         id: agendaId,
@@ -73,14 +80,42 @@ export class CommentsService {
         order: { bundleId: 'ASC', createdAt: 'ASC' },
         take: PAGINATION_UNIT_COMMENTS,
         skip: PAGINATION_UNIT_COMMENTS * (page - 1),
+        withDeleted: true,
       });
+      if (!user || user.role !== UserRole.Admin) {
+        comments.forEach((comment) => {
+          if (comment.deletedAt) {
+            comment.content = '삭제된 댓글입니다.';
+          }
+        });
+      }
       return {
         ok: true,
         comments,
         totalPage: Math.ceil(count / PAGINATION_UNIT_COMMENTS),
       };
-    } catch {
+    } catch (e) {
+      console.log(e);
       return { ok: false, error: "Couldn't get comments" };
+    }
+  }
+
+  async deleteComments(
+    user: User,
+    { commentsId }: DeleteCommentsInput,
+  ): Promise<DeleteCommentsOutput> {
+    try {
+      const comment = await this.findCommentsById(commentsId);
+      if (!comment) {
+        return { ok: false, error: 'Comment with input id does not exist.' };
+      }
+      if (comment.author.id !== user.id) {
+        return { ok: false, error: "You can't delete comment not yours." };
+      }
+      this.comments.softDelete({ id: commentsId });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: "Coudn't delete a Comment" };
     }
   }
 }

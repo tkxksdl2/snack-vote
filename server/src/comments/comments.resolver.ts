@@ -8,6 +8,10 @@ import {
   CreateCommentsOutput,
 } from './dtos/create-comments.dtos';
 import {
+  DeleteCommentsInput,
+  DeleteCommentsOutput,
+} from './dtos/delete-comments.dto';
+import {
   GetCommentsByAgendaInput,
   GetCommentsByAgendaOutput,
 } from './dtos/get-comments-by-agenda.dto';
@@ -16,11 +20,16 @@ import {
 export class CommentsResolver {
   constructor(private readonly commentsService: CommentsService) {}
 
+  @Role(['Visitor', 'Any'])
   @Query((returns) => GetCommentsByAgendaOutput)
   getCommentsByAgenda(
+    @AuthUser() user: User,
     @Args('input') getCommentsByAgendaInput: GetCommentsByAgendaInput,
   ): Promise<GetCommentsByAgendaOutput> {
-    return this.commentsService.getCommentsByAgenda(getCommentsByAgendaInput);
+    return this.commentsService.getCommentsByAgenda(
+      user,
+      getCommentsByAgendaInput,
+    );
   }
 
   @Role(['Any'])
@@ -30,5 +39,14 @@ export class CommentsResolver {
     @Args('input') createCommentsInput: CreateCommentsInput,
   ): Promise<CreateCommentsOutput> {
     return this.commentsService.createComments(user, createCommentsInput);
+  }
+
+  @Role(['Any'])
+  @Mutation((returns) => DeleteCommentsOutput)
+  deleteComments(
+    @AuthUser() user: User,
+    @Args('input') deleteCommentsInput: DeleteCommentsInput,
+  ): Promise<DeleteCommentsOutput> {
+    return this.commentsService.deleteComments(user, deleteCommentsInput);
   }
 }

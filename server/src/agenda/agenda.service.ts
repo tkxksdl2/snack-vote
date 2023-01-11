@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PAGINATION_UNIT } from 'src/common/common.constants';
-import { User } from 'src/users/entities/user.entity';
+import { User, UserRole } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import {
   CreateAgendaInput,
   CreateAgendaOutput,
 } from './dtos/create-agenda.dto';
+import {
+  DeleteAgendaInput,
+  DeleteAgendaOutput,
+} from './dtos/delete-agenda.dto';
 import {
   FindAgendaByIdInput,
   FindAgendaByIdOutput,
@@ -40,7 +44,10 @@ export class AgendaService {
     id,
   }: FindAgendaByIdInput): Promise<FindAgendaByIdOutput> {
     try {
-      const agenda = await this.agendas.findOne({ where: { id } });
+      const agenda = await this.agendas.findOne({
+        where: { id },
+        relations: ['author', 'comments'],
+      });
       if (!agenda) {
         return { ok: false, error: 'Agenda with input id is not found' };
       }
@@ -65,6 +72,28 @@ export class AgendaService {
       return { ok: true, result: newAgenda };
     } catch {
       return { ok: false, error: "Couldn't create Agenda" };
+    }
+  }
+
+  async deleteAgenda(
+    user: User,
+    { agendaId }: DeleteAgendaInput,
+  ): Promise<DeleteAgendaOutput> {
+    try {
+      const { agenda, ok, error } = await this.findAgendaById({ id: agendaId });
+      if (!ok) {
+        return { ok, error };
+      }
+      if (user.id !== agenda.author.id && user.role !== UserRole.Admin) {
+        return {
+          ok: false,
+          error: "You don't have permission to delete this agenda",
+        };
+      }
+      this.agendas.softRemove(agenda);
+      return { ok: true };
+    } catch {
+      return { ok: false, error: "Couldn't delete Agenda" };
     }
   }
 
@@ -123,7 +152,11 @@ export class AgendaService {
       opinions.forEach((opinion) => {
         agendas.push(opinion.agenda);
       });
-      return { ok: false, agendas };
+      return {
+        ok: false,
+        agendas,
+        totalPage: Math.ceil(count / PAGINATION_UNIT),
+      };
     } catch (e) {
       return { ok: false, error: "Coundn't get you voted agendas" };
     }

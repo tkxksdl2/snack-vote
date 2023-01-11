@@ -1,7 +1,7 @@
 import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { IsIn, IsInt, IsString, Length } from 'class-validator';
 import { Agenda } from 'src/agenda/entities/agenda.entity';
-import { AfterInsert, BeforeInsert, Column, Entity, ManyToOne } from 'typeorm';
+import { BeforeInsert, Column, Entity, ManyToOne } from 'typeorm';
 import { CommonEntity } from '../../common/entities/common.entity';
 import { User } from '../../users/entities/user.entity';
 
@@ -26,12 +26,16 @@ export class Comments extends CommonEntity {
   @Column({ default: 0 })
   depth: number;
 
-  @Field((type) => User)
-  @ManyToOne(() => User, (user) => user.comments)
-  author: User;
+  @Field((type) => User, { nullable: true })
+  @ManyToOne(() => User, (user) => user.comments, {
+    onDelete: 'SET NULL',
+    onUpdate: 'SET NULL',
+    nullable: true,
+  })
+  author?: User;
 
   @Field((type) => Agenda)
-  @ManyToOne(() => Agenda, (agenda) => agenda.comments)
+  @ManyToOne(() => Agenda, (agenda) => agenda.comments, { onDelete: 'CASCADE' })
   agenda: Agenda;
 
   @BeforeInsert()

@@ -9,6 +9,10 @@ import {
   CreateAgendaOutput,
 } from './dtos/create-agenda.dto';
 import {
+  DeleteAgendaInput,
+  DeleteAgendaOutput,
+} from './dtos/delete-agenda.dto';
+import {
   FindAgendaByIdInput,
   FindAgendaByIdOutput,
 } from './dtos/find-agenda-by-id.dto';
@@ -62,6 +66,15 @@ export class AgendaResolver {
     @Args('input') createAgendaInput: CreateAgendaInput,
   ): Promise<CreateAgendaOutput> {
     return this.agendaService.createAgenda(user, createAgendaInput);
+  }
+
+  @Role(['Any'])
+  @Mutation((returns) => DeleteAgendaOutput)
+  deleteAgenda(
+    @AuthUser() user: User,
+    @Args('input') deleteAgendaInput: DeleteAgendaInput,
+  ): Promise<DeleteAgendaOutput> {
+    return this.agendaService.deleteAgenda(user, deleteAgendaInput);
   }
 
   @Role(['Any'])

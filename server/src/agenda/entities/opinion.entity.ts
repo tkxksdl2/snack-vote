@@ -33,7 +33,7 @@ export class Opinion extends CommonEntity {
   agenda: Agenda;
 
   @Field((type) => [User])
-  @ManyToMany(() => User, { nullable: true })
+  @ManyToMany(() => User, { nullable: true, onDelete: 'CASCADE' })
   @JoinTable()
   votedUser?: User[];
 

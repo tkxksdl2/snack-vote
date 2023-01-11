@@ -22,20 +22,26 @@ export class Agenda extends CommonEntity {
   @Max(10)
   seriousness: number;
 
-  @Field((type) => User)
-  @ManyToOne(() => User, (author) => author.agendas, { nullable: true })
+  @Field((type) => User, { nullable: true })
+  @ManyToOne(() => User, (author) => author.agendas, {
+    nullable: true,
+    onDelete: 'SET NULL',
+    onUpdate: 'SET NULL',
+  })
   author?: User;
 
   @RelationId('author')
   authorId: number;
 
   @Field((type) => [Comments])
-  @OneToMany(() => Comments, (comments) => comments.agenda)
+  @OneToMany(() => Comments, (comments) => comments.agenda, {
+    cascade: ['remove', 'soft-remove'],
+  })
   comments: Comments[];
 
   @Field((type) => [Opinion])
   @OneToMany(() => Opinion, (opinion) => opinion.agenda, {
-    cascade: true,
+    cascade: ['insert', 'update', 'remove', 'soft-remove'],
     eager: true,
   })
   opinions: Opinion[];

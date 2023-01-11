@@ -58,15 +58,19 @@ export class User extends CommonEntity {
   refreshToken?: RefreshTokens;
 
   @Field((type) => [Agenda])
-  @OneToMany(() => Agenda, (agenda) => agenda.author, { nullable: true })
+  @OneToMany(() => Agenda, (agenda) => agenda.author, {
+    nullable: true,
+  })
   agendas?: [Agenda];
 
   @Field((type) => [Opinion])
-  @ManyToMany(() => Opinion, { nullable: true })
+  @ManyToMany(() => Opinion, { nullable: true, cascade: ['soft-remove'] })
   votedOp?: Opinion[];
 
   @Field((type) => [Comments])
-  @OneToMany(() => Comments, (comments) => comments.author, { nullable: true })
+  @OneToMany(() => Comments, (comments) => comments.author, {
+    nullable: true,
+  })
   comments?: Comments[];
 
   @BeforeInsert()
