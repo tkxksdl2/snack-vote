@@ -8,10 +8,9 @@ import { FindUserByIdOutput } from './dtos/find-one-by-id.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
 import { RefreshTokens } from './entities/refresh-tokens.entity';
 import { User, UserRole } from './entities/user.entity';
-import * as bcrypt from 'bcrypt';
 import { RefreshInput, RefreshOutput } from './dtos/refresh.dto';
-import { use } from 'passport';
 import { DeleteUserInput, DeleteUserOutput } from './dtos/delete-user.dto';
+import { UpdateUserInput, UpdateUserOutput } from './dtos/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -23,6 +22,15 @@ export class UserService {
 
     private readonly jwtService: JwtService,
   ) {}
+
+  async findOneById(id: number): Promise<FindUserByIdOutput> {
+    try {
+      const user = await this.users.findOneOrFail({ where: { id } });
+      return { ok: true, user };
+    } catch {
+      return { ok: false, error: 'Unexeptable id or wrong token' };
+    }
+  }
 
   async createUser({
     email,
@@ -41,6 +49,34 @@ export class UserService {
       return { ok: true };
     } catch {
       return { ok: false, error: "Couldn't create User" };
+    }
+  }
+
+  async updateUser(
+    me: User,
+    { inputId, email, password, name, profileImage }: UpdateUserInput,
+  ): Promise<UpdateUserOutput> {
+    try {
+      const { ok, error, user } = await this.findOneById(inputId);
+      if (!ok) {
+        return { ok, error };
+      }
+      if (me.role !== UserRole.Admin && me.id !== user.id) {
+        return {
+          ok: false,
+          error: "You don't have permission to update this user",
+        };
+      }
+      if (email) user.email = email;
+      if (password) user.password = password;
+      if (name) user.name = name;
+      if (profileImage) user.profileImage = profileImage;
+      await this.users.save(user);
+      return {
+        ok: true,
+      };
+    } catch {
+      return { ok: false, error: "Couldn't update User" };
     }
   }
 
@@ -94,7 +130,7 @@ export class UserService {
         { id: user.id },
         TokenType.Refresh,
       );
-      this.deleteRefreshToken(user.id);
+      await this.deleteRefreshToken(user.id);
       const { id: refreshTokenId } = await this.refreshTokens.save(
         this.refreshTokens.create({ refreshToken, user }),
       );
@@ -157,15 +193,6 @@ export class UserService {
         ok: false,
         error: "Couldn't refresh token. Refresh Token could be expired.",
       };
-    }
-  }
-
-  async findOneById(id: number): Promise<FindUserByIdOutput> {
-    try {
-      const user = await this.users.findOneOrFail({ where: { id } });
-      return { ok: true, user };
-    } catch {
-      return { ok: false, error: 'Unexeptable id or wrong token' };
     }
   }
 }

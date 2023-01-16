@@ -6,6 +6,7 @@ import { CreateUserInput } from './dtos/create-user.dto';
 import { DeleteUserInput, DeleteUserOutput } from './dtos/delete-user.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
 import { RefreshInput, RefreshOutput } from './dtos/refresh.dto';
+import { UpdateUserInput, UpdateUserOutput } from './dtos/update-user.dto';
 import { User } from './entities/user.entity';
 import { UserService } from './user.service';
 
@@ -42,5 +43,14 @@ export class UserResolver {
     @Args('input') deleteUserInput: DeleteUserInput,
   ): Promise<DeleteUserOutput> {
     return this.userService.deleteUser(user, deleteUserInput);
+  }
+
+  @Role(['Any'])
+  @Mutation((returns) => UpdateUserOutput)
+  updateUser(
+    @AuthUser() user: User,
+    @Args('input') updateUserInput: UpdateUserInput,
+  ): Promise<UpdateUserOutput> {
+    return this.userService.updateUser(user, updateUserInput);
   }
 }

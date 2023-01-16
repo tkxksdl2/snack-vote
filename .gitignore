@@ -3,6 +3,7 @@
 **/*/dist
 **/*.dev
 **/test-queries.txt
+**/media/image/**
 # IDE
 /.idea
 /.awcache

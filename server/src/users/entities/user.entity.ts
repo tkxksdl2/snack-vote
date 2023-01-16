@@ -53,6 +53,11 @@ export class User extends CommonEntity {
   @IsString()
   password: string;
 
+  @Column({ nullable: true })
+  @Field((type) => String, { nullable: true })
+  @IsString()
+  profileImage?: string;
+
   @Field((type) => RefreshTokens, { nullable: true })
   @OneToOne(() => RefreshTokens, (ref) => ref.user, { nullable: true })
   refreshToken?: RefreshTokens;

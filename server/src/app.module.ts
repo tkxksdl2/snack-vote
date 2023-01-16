@@ -14,6 +14,7 @@ import { AuthModule } from './auth/auth.module';
 import { RefreshTokens } from './users/entities/refresh-tokens.entity';
 import { CommentsModule } from './comments/comments.module';
 import { Comments } from './comments/entities/comments.entity';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { Comments } from './comments/entities/comments.entity';
     AgendaModule,
     AuthModule,
     CommentsModule,
+    UploadModule,
   ],
   controllers: [],
   providers: [],
