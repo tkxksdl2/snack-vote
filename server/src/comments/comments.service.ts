@@ -64,7 +64,7 @@ export class CommentsService {
   }
 
   async getCommentsByAgenda(
-    user,
+    user: User,
     { agendaId, page }: GetCommentsByAgendaInput,
   ): Promise<GetCommentsByAgendaOutput> {
     try {

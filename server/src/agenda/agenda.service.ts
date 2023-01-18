@@ -15,7 +15,10 @@ import {
   FindAgendaByIdInput,
   FindAgendaByIdOutput,
 } from './dtos/find-agenda-by-id.dto';
-import { GetAllAgendasInput } from './dtos/get-all-agendas.dto';
+import {
+  GetAllAgendasInput,
+  GetAllAgendasOutput,
+} from './dtos/get-all-agendas.dto';
 import {
   GetMyAgendasInput,
   GetmyAgendasOutput,
@@ -46,7 +49,7 @@ export class AgendaService {
     try {
       const agenda = await this.agendas.findOne({
         where: { id },
-        relations: ['author', 'comments'],
+        relations: ['author'],
       });
       if (!agenda) {
         return { ok: false, error: 'Agenda with input id is not found' };
@@ -97,7 +100,9 @@ export class AgendaService {
     }
   }
 
-  async getAllAgendas({ page }: GetAllAgendasInput) {
+  async getAllAgendas({
+    page,
+  }: GetAllAgendasInput): Promise<GetAllAgendasOutput> {
     try {
       const [agendas, count] = await this.agendas.findAndCount({
         take: PAGINATION_UNIT,
@@ -109,7 +114,8 @@ export class AgendaService {
         agendas,
         totalPage,
       };
-    } catch {
+    } catch (e) {
+      console.log(e);
       return { ok: false, error: 'Internal Server Error' };
     }
   }
@@ -185,6 +191,7 @@ export class AgendaService {
         votedOp.votedUser = votedOp.votedUser.filter((user) => {
           return user.id !== authUser.id;
         });
+        votedOp.votedUserCount -= 1;
         this.opinions.save(votedOp);
         return {
           ok: true,
@@ -193,6 +200,7 @@ export class AgendaService {
         };
       }
       votedOp.votedUser.push(authUser);
+      votedOp.votedUserCount += 1;
       this.opinions.save(votedOp);
       return {
         ok: true,

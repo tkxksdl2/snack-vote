@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+
+.percentageBarBase {
+  @apply bg-blue-300 rounded-full border border-slate-500;
+}
+
+.percentageBarLeft {
+  @apply relative bg-orange-300 h-full rounded-full flex justify-end;
+  min-width: 1.5rem;
+}
+
+.percentageBarNode {
+  @apply absolute h-full bg-stone-500 rounded-full;
+}
+
+.min-h-comment {
+  min-height: 5rem;
+}
+
+@tailwind utilities;

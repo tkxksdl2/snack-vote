@@ -1,4 +1,4 @@
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { IsBoolean, IsString } from 'class-validator';
 import { CommonEntity } from 'src/common/entities/common.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -37,6 +37,11 @@ export class Opinion extends CommonEntity {
   @JoinTable()
   votedUser?: User[];
 
+  @Field((type) => [Number], { nullable: true })
   @RelationId('votedUser')
-  votedUserId: number[];
+  votedUserId?: number[];
+
+  @Column({ default: 0 })
+  @Field((type) => Int, { defaultValue: 0 })
+  votedUserCount: number;
 }

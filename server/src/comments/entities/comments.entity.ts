@@ -31,6 +31,7 @@ export class Comments extends CommonEntity {
     onDelete: 'SET NULL',
     onUpdate: 'SET NULL',
     nullable: true,
+    eager: true,
   })
   author?: User;
 
