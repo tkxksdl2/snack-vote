@@ -196,7 +196,8 @@ export class AgendaService {
         return {
           ok: true,
           message: 'Successfully unvoted opinion',
-          voteCount: votedOp.votedUser.length,
+          voteCount: votedOp.votedUserCount,
+          voteId,
         };
       }
       votedOp.votedUser.push(authUser);
@@ -205,7 +206,8 @@ export class AgendaService {
       return {
         ok: true,
         message: 'Successfully voted opinion',
-        voteCount: votedOp.votedUser.length,
+        voteCount: votedOp.votedUserCount,
+        voteId,
       };
     } catch {
       return { ok: false, error: "Couldn't vote to opinion" };

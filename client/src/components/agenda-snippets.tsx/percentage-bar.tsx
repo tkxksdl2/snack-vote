@@ -14,18 +14,18 @@ export const PercentageBar: React.FC<IPercentageBarFrop> = ({
   const totalCnt = voteCntA + voteCntB;
 
   return (
-    <div className="percentageBarBase" style={{ width, height }}>
+    <div
+      className="per-bar-base"
+      style={{ maxWidth: width - height / 2, height }}
+    >
       <div
-        className="percentageBarLeft"
+        className="per-Bar-l"
         style={{
-          width: `${
-            totalCnt > 0
-              ? height / 2 + (width - height / 2) * (voteCntA / totalCnt) + ""
-              : `${width / 2 + height / 2}`
-          }px`,
+          width: `${totalCnt > 0 ? (voteCntA / totalCnt) * 100 + "" : `50`}%`,
+          minWidth: height,
         }}
       >
-        <div className="percentageBarNode" style={{ width: height }}></div>
+        <div className="per-bar-node" style={{ width: height }}></div>
       </div>
     </div>
   );

@@ -1,21 +1,36 @@
 @tailwind base;
 @tailwind components;
 
-.percentageBarBase {
-  @apply bg-blue-300 rounded-full border border-slate-500;
+.per-bar-base {
+  @apply bg-blue-300 rounded-full w-full flex;
 }
 
-.percentageBarLeft {
-  @apply relative bg-orange-300 h-full rounded-full flex justify-end;
-  min-width: 1.5rem;
+.per-Bar-l {
+  @apply bg-orange-300 h-full rounded-full flex justify-end transition-all;
 }
 
-.percentageBarNode {
-  @apply absolute h-full bg-stone-500 rounded-full;
+.per-bar-node {
+  @apply relative h-full bg-stone-500 rounded-full;
 }
 
 .min-h-comment {
   min-height: 5rem;
 }
 
+.input {
+  @apply bg-lime-300 w-full h-10 px-2;
+}
+
+.error-div {
+  @apply bg-gray-200 py-2 px-2 text-red-500 rounded-md;
+}
+
+.c-user-form {
+  width: 400px;
+  height: 500px;
+}
+
+.vote-btn {
+  @apply hover:text-lime-500 mx-5;
+}
 @tailwind utilities;

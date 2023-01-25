@@ -1,5 +1,5 @@
-import { gql, useQuery } from "@apollo/client";
-import { useState } from "react";
+import { gql, useMutation, useQuery } from "@apollo/client";
+import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { PercentageBar } from "../../components/agenda-snippets.tsx/percentage-bar";
 import { AGENDA_FRAGMENT, COMMENT_FRAGMENT } from "../../fragments";
@@ -9,9 +9,12 @@ import {
   CommentPartsFragment,
   GetAgendaAndCommentsQuery,
   GetAgendaAndCommentsQueryVariables,
+  VoteOrUnvoteMutation,
+  VoteOrUnvoteMutationVariables,
 } from "../../gql/graphql";
-import date from "date-and-time";
 import { CommentFrame } from "../../components/agenda-snippets.tsx/comment";
+import { client, isLoggedInVar } from "../../apollo";
+import { useMe } from "../../hooks/use-me";
 
 const GET_AGENDA_AND_COMMENTS = gql`
   query getAgendaAndComments(
@@ -42,6 +45,18 @@ const GET_AGENDA_AND_COMMENTS = gql`
   ${AGENDA_FRAGMENT}
 `;
 
+const VOTE_OR_UNVOTE = gql`
+  mutation voteOrUnvote($input: VoteOrUnvoteInput!) {
+    voteOrUnvote(input: $input) {
+      ok
+      error
+      voteCount
+      message
+      voteId
+    }
+  }
+`;
+
 type TAgendaParams = {
   id: string;
 };
@@ -70,6 +85,42 @@ export const AgendaDetail = () => {
   const voteCntB = agenda ? agenda.opinions[1].votedUserCount : 0;
   let totalCnt = voteCntA + voteCntB;
   const agendaAuthor = data?.findAgendaById.agenda?.author;
+
+  const [voteOrUnvote, { loading: voteLoading }] = useMutation<
+    VoteOrUnvoteMutation,
+    VoteOrUnvoteMutationVariables
+  >(VOTE_OR_UNVOTE, {
+    onCompleted: (data) => {
+      const { ok, error, message, voteCount, voteId } = data.voteOrUnvote;
+      if (ok && message) {
+        alert(message);
+      } else if (error) {
+        alert(error);
+      }
+      client.writeFragment({
+        id: `Opinion:${voteId}`,
+        fragment: gql`
+          fragment votedOp on Opinion {
+            votedUserCount
+          }
+        `,
+        data: {
+          votedUserCount: voteCount,
+        },
+      });
+    },
+  });
+  const onVoteClick = (voteId: number, otherOpinionId: number) => {
+    voteOrUnvote({
+      variables: {
+        input: {
+          voteId,
+          otherOpinionId,
+        },
+      },
+    });
+  };
+
   return (
     <div className="flex min-h-screen h-full justify-center bg-slate-300 text-gray-700">
       <div className="max-w-4xl w-full min-h-screen h-full bg-white">
@@ -92,20 +143,26 @@ export const AgendaDetail = () => {
                 </span>
               </div>
             </div>
-            <div className="flex justify-between items-baseline px-2 mb-12 text-7xl font-semibold">
+            <div className="flex justify-between items-baseline px-2 mb-12 lg:text-7xl text-3xl font-semibold">
               <span
                 className={
                   "overflow-hidden" +
-                  (voteCntA > voteCntB ? " text-8xl text-red-900" : "")
+                  (voteCntA > voteCntB
+                    ? "lg:text-8xl text-4xl text-red-900"
+                    : "")
                 }
               >
                 {voteCntA ? ((voteCntA / totalCnt) * 100).toFixed(1) : 0} %
               </span>
-              <span className="text-3xl">총 투표 수: {totalCnt}</span>
+              <span className="lg:text-3xl text-base">
+                총 투표 수: {totalCnt}
+              </span>
               <span
                 className={
                   "overflow-hidden" +
-                  (voteCntB > voteCntA ? " text-8xl text-red-900" : "")
+                  (voteCntB > voteCntA
+                    ? "lg:text-8xl text-4xl text-red-900"
+                    : "")
                 }
               >
                 {voteCntB ? ((voteCntB / totalCnt) * 100).toFixed(1) : 0} %
@@ -118,13 +175,39 @@ export const AgendaDetail = () => {
               height={36}
             />
           </div>
-          <div className="flex justify-between pb-3">
-            <div>투표 1</div>
-            <div>투표 2</div>
-          </div>
+          {agenda && (
+            <div className="flex justify-between pb-3">
+              <button
+                onClick={() => {
+                  onVoteClick(agenda?.opinions[0].id, agenda?.opinions[1].id);
+                }}
+                className={
+                  "vote-btn " +
+                  ((!isLoggedInVar() || voteLoading) && "pointer-events-none")
+                }
+              >
+                투표
+              </button>
+              <button
+                onClick={() => {
+                  onVoteClick(agenda?.opinions[1].id, agenda?.opinions[0].id);
+                }}
+                className={
+                  "vote-btn " +
+                  ((!isLoggedInVar() || voteLoading) && "pointer-events-none")
+                }
+              >
+                투표
+              </button>
+            </div>
+          )}
           <div className="py-10">
-            {comments?.map((comment) => {
-              return <CommentFrame comment={comment} />;
+            {comments?.map((comment, index) => {
+              return (
+                <div key={index}>
+                  <CommentFrame comment={comment} />
+                </div>
+              );
             })}
           </div>
         </div>

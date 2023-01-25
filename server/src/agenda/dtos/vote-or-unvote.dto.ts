@@ -19,6 +19,10 @@ export class VoteOrUnvoteOutput extends CommonOutput {
   @IsInt()
   voteCount?: number;
 
+  @Field((type) => Int, { nullable: true })
+  @IsInt()
+  voteId?: number;
+
   @Field((type) => String, { nullable: true })
   message?: string;
 }

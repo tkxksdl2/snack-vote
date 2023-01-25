@@ -22,7 +22,7 @@ export const AgendaFrame: React.FC<IAgendaFrameProp> = ({ agenda }) => {
 
   return (
     <div
-      className="lg:w-96 h-36 p-2 border border-neutral-400 rounded-md bg-white text-gray-700 
+      className="lg:w-96 w-72 h-36 p-2 border border-neutral-400 rounded-md bg-white text-gray-700 
                      hover:border-teal-100 hover:border-2 cursor-pointer"
     >
       <div

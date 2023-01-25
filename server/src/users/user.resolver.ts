@@ -14,9 +14,10 @@ import { UserService } from './user.service';
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
-  @Query((returns) => Boolean)
-  me() {
-    return true;
+  @Role(['Any'])
+  @Query((returns) => User)
+  me(@AuthUser() authUser: User): User {
+    return authUser;
   }
 
   @Mutation((returns) => LoginOutput)
