@@ -1,7 +1,12 @@
 import { useReactiveVar } from "@apollo/client";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { cache, isLoggedInVar } from "../apollo";
+import {
+  accessTokenVar,
+  cache,
+  isLoggedInVar,
+  refreshTokenIdVar,
+} from "../apollo";
 import { LOCAL_STARAGE_REFRESH_ID, LOCAL_STARAGE_TOKEN } from "../constants";
 import { useMe } from "../hooks/use-me";
 
@@ -16,6 +21,8 @@ export const Header = () => {
     isLoggedInVar(false);
     localStorage.removeItem(LOCAL_STARAGE_TOKEN);
     localStorage.removeItem(LOCAL_STARAGE_REFRESH_ID);
+    accessTokenVar(null);
+    refreshTokenIdVar(null);
     cache.evict({ id: `User:${data?.me.id}` + "" });
   };
   const isLoggedIn = useReactiveVar(isLoggedInVar);

@@ -1,4 +1,4 @@
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { PercentageBar } from "../../components/agenda-snippets.tsx/percentage-bar";
@@ -64,6 +64,7 @@ type TAgendaParams = {
 export const AgendaDetail = () => {
   const [commentPage, setCommentPage] = useState(1);
   const { id } = useParams() as TAgendaParams;
+  const isLoggedIn = useReactiveVar(isLoggedInVar);
   const { data, loading } = useQuery<
     GetAgendaAndCommentsQuery,
     GetAgendaAndCommentsQueryVariables
@@ -183,7 +184,7 @@ export const AgendaDetail = () => {
                 }}
                 className={
                   "vote-btn " +
-                  ((!isLoggedInVar() || voteLoading) && "pointer-events-none")
+                  ((!isLoggedIn || voteLoading) && "pointer-events-none")
                 }
               >
                 투표
@@ -194,7 +195,7 @@ export const AgendaDetail = () => {
                 }}
                 className={
                   "vote-btn " +
-                  ((!isLoggedInVar() || voteLoading) && "pointer-events-none")
+                  ((!isLoggedIn || voteLoading) && "pointer-events-none")
                 }
               >
                 투표

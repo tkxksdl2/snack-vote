@@ -1,6 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
+import { GraphQLError } from 'graphql';
+import { TokenExpiredError } from 'jsonwebtoken';
 import { JwtService, TokenType } from 'src/jwt/jwt.service';
 import { UserService } from 'src/users/user.service';
 import { AllowedRole } from './role.decorator';
@@ -34,8 +36,11 @@ export class AuthGuard implements CanActivate {
       } else if (roles.includes('Visitor')) return true;
       else return false;
     } catch (e) {
-      console.log(e);
-      return false;
+      if (e instanceof TokenExpiredError) {
+        throw new GraphQLError('Expired Token', {
+          extensions: { code: 'ACCEESS_TOKEN_EXPIRED' },
+        });
+      } else return false;
     }
   }
 }

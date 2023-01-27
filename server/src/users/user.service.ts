@@ -186,7 +186,7 @@ export class UserService {
         { id: refreshToken.user.id },
         TokenType.Access,
       );
-      return { ok: false, newAccessToken };
+      return { ok: true, newAccessToken };
     } catch (e) {
       console.log(e);
       return {
