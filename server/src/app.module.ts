@@ -1,5 +1,5 @@
 import { ApolloDriver } from '@nestjs/apollo';
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
@@ -15,6 +15,7 @@ import { RefreshTokens } from './users/entities/refresh-tokens.entity';
 import { CommentsModule } from './comments/comments.module';
 import { Comments } from './comments/entities/comments.entity';
 import { UploadModule } from './upload/upload.module';
+import { AppLoggerMiddleware } from './applogger/app-logger-middleware';
 
 @Module({
   imports: [
@@ -37,7 +38,6 @@ import { UploadModule } from './upload/upload.module';
       password: 'asfd3358644*',
       database: 'snackvote',
       synchronize: true,
-      logging: true,
       entities: [User, Agenda, Opinion, RefreshTokens, Comments],
     }),
     JwtModule.forRoot({
@@ -55,4 +55,9 @@ import { UploadModule } from './upload/upload.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    if (process.env.NODE_ENV === 'dev')
+      consumer.apply(AppLoggerMiddleware).forRoutes('*');
+  }
+}
