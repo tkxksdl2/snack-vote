@@ -31,7 +31,6 @@ export const CreateUser = () => {
     } = data;
     if (ok) {
       alert("회원 가입이 완료되었습니다.");
-      console.log(data);
       navigate("/");
     }
   };

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { AgendaFrame } from "../components/agenda-snippets.tsx/agenda-frame";
 import { AGENDA_FRAGMENT } from "../fragments";
-import { useFragment } from "../gql";
+import { getFragmentData } from "../gql";
 import {
   AgendaPartsFragment,
   GetAllAgendasQuery,
@@ -36,7 +36,7 @@ export const Main = () => {
       },
     },
   });
-  const agendas = useFragment<AgendaPartsFragment>(
+  const agendas = getFragmentData<AgendaPartsFragment>(
     AGENDA_FRAGMENT,
     data?.getAllAgendas.agendas
   );

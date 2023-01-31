@@ -55,9 +55,13 @@ export class CommentsService {
         this.comments.create({ agenda, author, content, bundleId }),
       );
       if (!comments.bundleId) {
-        await this.comments.save({ id: comments.id, bundleId: comments.id });
+        comments.bundleId = comments.id;
+        await this.comments.save({
+          id: comments.id,
+          bundleId: comments.id,
+        });
       }
-      return { ok: true };
+      return { ok: true, comments };
     } catch {
       return { ok: false, error: "Couldn't create Comments" };
     }

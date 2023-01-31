@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { PercentageBar } from "../../components/agenda-snippets.tsx/percentage-bar";
 import { AGENDA_FRAGMENT, COMMENT_FRAGMENT } from "../../fragments";
-import { useFragment } from "../../gql";
+import { getFragmentData } from "../../gql";
 import {
   AgendaPartsFragment,
   CommentPartsFragment,
@@ -14,9 +14,9 @@ import {
 } from "../../gql/graphql";
 import { CommentFrame } from "../../components/agenda-snippets.tsx/comment";
 import { client, isLoggedInVar } from "../../apollo";
-import { useMe } from "../../hooks/use-me";
+import { CreateComments } from "../../components/agenda-snippets.tsx/create-comments";
 
-const GET_AGENDA_AND_COMMENTS = gql`
+export const GET_AGENDA_AND_COMMENTS = gql`
   query getAgendaAndComments(
     $commentsInput: GetCommentsByAgendaInput!
     $agendaInput: FindAgendaByIdInput!
@@ -63,9 +63,10 @@ type TAgendaParams = {
 
 export const AgendaDetail = () => {
   const [commentPage, setCommentPage] = useState(1);
+  const [reCommentNum, setReCommentNum] = useState(-1);
   const { id } = useParams() as TAgendaParams;
   const isLoggedIn = useReactiveVar(isLoggedInVar);
-  const { data, loading } = useQuery<
+  const { data, refetch } = useQuery<
     GetAgendaAndCommentsQuery,
     GetAgendaAndCommentsQueryVariables
   >(GET_AGENDA_AND_COMMENTS, {
@@ -74,11 +75,11 @@ export const AgendaDetail = () => {
       agendaInput: { id: +id },
     },
   });
-  const agenda = useFragment<AgendaPartsFragment>(
+  const agenda = getFragmentData<AgendaPartsFragment>(
     AGENDA_FRAGMENT,
     data?.findAgendaById.agenda
   );
-  const comments = useFragment<CommentPartsFragment>(
+  const comments = getFragmentData<CommentPartsFragment>(
     COMMENT_FRAGMENT,
     data?.getCommentsByAgenda.comments
   );
@@ -121,7 +122,10 @@ export const AgendaDetail = () => {
       },
     });
   };
-
+  const onReCommentClick = (commentIndex: number) => {
+    if (reCommentNum === commentIndex) setReCommentNum(-1);
+    else setReCommentNum(commentIndex);
+  };
   return (
     <div className="flex min-h-screen h-full justify-center bg-slate-300 text-gray-700">
       <div className="max-w-4xl w-full min-h-screen h-full bg-white">
@@ -149,7 +153,7 @@ export const AgendaDetail = () => {
                 className={
                   "overflow-hidden" +
                   (voteCntA > voteCntB
-                    ? "lg:text-8xl text-4xl text-red-900"
+                    ? " lg:text-8xl text-4xl text-red-900"
                     : "")
                 }
               >
@@ -162,7 +166,7 @@ export const AgendaDetail = () => {
                 className={
                   "overflow-hidden" +
                   (voteCntB > voteCntA
-                    ? "lg:text-8xl text-4xl text-red-900"
+                    ? " lg:text-8xl text-4xl text-red-900"
                     : "")
                 }
               >
@@ -202,14 +206,43 @@ export const AgendaDetail = () => {
               </button>
             </div>
           )}
+          <div className="border-y h-2 border-gray-300"></div>
           <div className="py-10">
             {comments?.map((comment, index) => {
               return (
                 <div key={index}>
                   <CommentFrame comment={comment} />
+                  <div className=" text-end">
+                    {isLoggedIn && (
+                      <button
+                        className=" text-sm font-light"
+                        onClick={() => {
+                          onReCommentClick(index);
+                        }}
+                      >
+                        댓글
+                      </button>
+                    )}
+                  </div>
+                  {reCommentNum === index && agenda && (
+                    <div
+                      className={
+                        "mt-1 " + (comment.depth === 0 ? "pl-3" : "pl-8")
+                      }
+                    >
+                      <CreateComments
+                        agendaId={agenda?.id}
+                        bundleId={comment.bundleId}
+                        commentPage={commentPage}
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}
+            {agenda && (
+              <CreateComments agendaId={agenda?.id} commentPage={commentPage} />
+            )}
           </div>
         </div>
       </div>

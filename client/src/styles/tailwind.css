@@ -14,7 +14,11 @@
 }
 
 .min-h-comment {
-  min-height: 5rem;
+  min-height: 4rem;
+}
+
+.min-h-24 {
+  min-height: 10rem;
 }
 
 .input {
@@ -33,4 +37,12 @@
 .vote-btn {
   @apply hover:text-lime-500 mx-5;
 }
+
+.hiddendiv {
+  display: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  min-height: 5rem;
+}
+
 @tailwind utilities;

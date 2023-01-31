@@ -8,7 +8,7 @@ interface ICommentProp {
 export const CommentFrame: React.FC<ICommentProp> = ({ comment }) => {
   const parsedDate = date.format(
     new Date(comment.createdAt),
-    "YYYY/MM/DD HH:MM"
+    "YYYY/MM/DD HH:mm"
   );
   return (
     <div className="py-2 min-h-comment">
@@ -17,7 +17,9 @@ export const CommentFrame: React.FC<ICommentProp> = ({ comment }) => {
           <span>{comment.author?.name}</span>
           <span>{parsedDate}</span>
         </div>
-        <div className="font-medium px-2">{comment.content}</div>
+        <div className="font-medium px-2 whitespace-pre-wrap break-words">
+          {comment.content}
+        </div>
       </div>
     </div>
   );

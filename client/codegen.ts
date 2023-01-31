@@ -8,6 +8,9 @@ const config: CodegenConfig = {
     "src/gql/": {
       preset: "client",
       plugins: [],
+      presetConfig: {
+        fragmentMasking: { unmaskFunctionName: "getFragmentData" },
+      },
     },
     "./graphql.schema.json": {
       plugins: ["introspection"],
