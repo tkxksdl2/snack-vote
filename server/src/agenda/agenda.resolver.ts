@@ -17,6 +17,10 @@ import {
   FindAgendaByIdOutput,
 } from './dtos/find-agenda-by-id.dto';
 import {
+  GetAgendasByCategoryInput,
+  GetAgendasByCategoryOutput,
+} from './dtos/get-agendas-by-category';
+import {
   GetAllAgendasInput,
   GetAllAgendasOutput,
 } from './dtos/get-all-agendas.dto';
@@ -48,6 +52,15 @@ export class AgendaResolver {
   @Query((returns) => GetAllAgendasOutput)
   getAllAgendas(@Args('input') getAllAgendasInput: GetAllAgendasInput) {
     return this.agendaService.getAllAgendas(getAllAgendasInput);
+  }
+
+  @Role(['Any'])
+  @Query((returns) => GetAgendasByCategoryOutput)
+  getAgendasByCategory(
+    @AuthUser() user: User,
+    @Args('input') getAgendasByCategoryInput: GetAgendasByCategoryInput,
+  ): Promise<GetAgendasByCategoryOutput> {
+    return this.agendaService.getAgendasByCategory(getAgendasByCategoryInput);
   }
 
   @Role(['Any'])

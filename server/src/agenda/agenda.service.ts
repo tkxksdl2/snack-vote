@@ -16,6 +16,10 @@ import {
   FindAgendaByIdOutput,
 } from './dtos/find-agenda-by-id.dto';
 import {
+  GetAgendasByCategoryInput,
+  GetAgendasByCategoryOutput,
+} from './dtos/get-agendas-by-category';
+import {
   GetAllAgendasInput,
   GetAllAgendasOutput,
 } from './dtos/get-all-agendas.dto';
@@ -62,7 +66,7 @@ export class AgendaService {
 
   async createAgenda(
     author: User,
-    { subject, seriousness, opinionA, opinionB }: CreateAgendaInput,
+    { subject, seriousness, category, opinionA, opinionB }: CreateAgendaInput,
   ): Promise<CreateAgendaOutput> {
     try {
       const opinions = [
@@ -70,7 +74,13 @@ export class AgendaService {
         this.opinions.create({ opinionText: opinionB, opinionType: false }),
       ];
       const newAgenda = await this.agendas.save(
-        this.agendas.create({ subject, seriousness, opinions, author }),
+        this.agendas.create({
+          subject,
+          seriousness,
+          category,
+          opinions,
+          author,
+        }),
       );
       return { ok: true, result: newAgenda };
     } catch {
@@ -107,6 +117,7 @@ export class AgendaService {
       const [agendas, count] = await this.agendas.findAndCount({
         take: PAGINATION_UNIT,
         skip: PAGINATION_UNIT * (page - 1),
+        order: { createdAt: 'DESC' },
       });
       const totalPage = Math.ceil(count / PAGINATION_UNIT);
       return {
@@ -115,7 +126,28 @@ export class AgendaService {
         totalPage,
       };
     } catch (e) {
-      console.log(e);
+      return { ok: false, error: 'Internal Server Error' };
+    }
+  }
+
+  async getAgendasByCategory({
+    page,
+    category,
+  }: GetAgendasByCategoryInput): Promise<GetAgendasByCategoryOutput> {
+    try {
+      const [agendas, count] = await this.agendas.findAndCount({
+        take: PAGINATION_UNIT,
+        skip: PAGINATION_UNIT * (page - 1),
+        where: { category },
+        order: { createdAt: 'DESC' },
+      });
+      const totalPage = Math.ceil(count / PAGINATION_UNIT);
+      return {
+        ok: true,
+        agendas,
+        totalPage,
+      };
+    } catch {
       return { ok: false, error: 'Internal Server Error' };
     }
   }

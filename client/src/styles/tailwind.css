@@ -2,15 +2,15 @@
 @tailwind components;
 
 .per-bar-base {
-  @apply bg-blue-300 rounded-full w-full flex;
+  @apply bg-blue-200 rounded-full w-full flex;
 }
 
 .per-Bar-l {
-  @apply bg-orange-300 h-full rounded-full flex justify-end transition-all;
+  @apply bg-orange-200 h-full rounded-full flex justify-end transition-all;
 }
 
 .per-bar-node {
-  @apply relative h-full bg-stone-500 rounded-full;
+  @apply relative h-full bg-stone-400 rounded-full;
 }
 
 .min-h-comment {
@@ -19,6 +19,14 @@
 
 .min-h-24 {
   min-height: 10rem;
+}
+
+.min-h-7 {
+  min-height: 1.75rem;
+}
+
+.max-w-1\/2 {
+  max-width: 50%;
 }
 
 .input {
@@ -32,6 +40,14 @@
 .c-user-form {
   width: 400px;
   height: 500px;
+}
+
+.c-agenda-form {
+  min-height: 500px;
+}
+
+.submit-btn {
+  @apply w-1/3 py-1 my-3 rounded-3xl text-white;
 }
 
 .vote-btn {

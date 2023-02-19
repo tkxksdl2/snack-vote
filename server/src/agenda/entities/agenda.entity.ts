@@ -1,10 +1,23 @@
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
-import { IsNumber, IsString, Max, Min } from 'class-validator';
+import {
+  Field,
+  InputType,
+  ObjectType,
+  registerEnumType,
+} from '@nestjs/graphql';
+import { IsEnum, IsNumber, IsString, Max, Min } from 'class-validator';
 import { Comments } from 'src/comments/entities/comments.entity';
 import { CommonEntity } from 'src/common/entities/common.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Column, Entity, ManyToOne, OneToMany, RelationId } from 'typeorm';
 import { Opinion } from './opinion.entity';
+
+export enum Category {
+  Humor = 'humor',
+  Social = 'social',
+  Game = 'game',
+  Culture = 'culture',
+}
+registerEnumType(Category, { name: 'Category' });
 
 @InputType('AgendaInputType', { isAbstract: true })
 @ObjectType()
@@ -14,6 +27,12 @@ export class Agenda extends CommonEntity {
   @Field((type) => String)
   @IsString()
   subject: string;
+
+  @Column({ type: 'enum', enum: Category })
+  @Field((type) => Category)
+  @IsEnum(Category)
+  @IsString()
+  category: Category;
 
   @Column()
   @Field((type) => Number)

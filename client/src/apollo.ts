@@ -18,6 +18,7 @@ const refreshId = localStorage.getItem(LOCAL_STARAGE_REFRESH_ID);
 export const isLoggedInVar = makeVar(Boolean(token));
 export const accessTokenVar = makeVar(token);
 export const refreshTokenIdVar = makeVar(refreshId);
+export const agendaListDefaultPageVar = makeVar(1);
 
 export let client: ApolloClient<object>;
 
@@ -58,7 +59,7 @@ const linkOnError = onError(({ graphQLErrors, operation, forward }) => {
                 LOCAL_STARAGE_TOKEN,
                 data.refresh.newAccessToken
               );
-              forward(operation);
+              return forward(operation);
             } else {
               accessTokenVar(null);
               refreshTokenIdVar(null);
@@ -68,6 +69,9 @@ const linkOnError = onError(({ graphQLErrors, operation, forward }) => {
               cache.reset();
               alert("토큰이 만료되었습니다. 다시 로그인해주세요.");
             }
+          })
+          .catch((e) => {
+            console.log(e);
           })
       );
     }

@@ -13,8 +13,9 @@ import {
   VoteOrUnvoteMutationVariables,
 } from "../../gql/graphql";
 import { CommentFrame } from "../../components/agenda-snippets.tsx/comment";
-import { client, isLoggedInVar } from "../../apollo";
+import { agendaListDefaultPageVar, client, isLoggedInVar } from "../../apollo";
 import { CreateComments } from "../../components/agenda-snippets.tsx/create-comments";
+import { AgendaList } from "../../components/agenda-snippets.tsx/agenda-list";
 
 export const GET_AGENDA_AND_COMMENTS = gql`
   query getAgendaAndComments(
@@ -131,19 +132,22 @@ export const AgendaDetail = () => {
       <div className="max-w-4xl w-full min-h-screen h-full bg-white">
         <div className="px-5 font-semibold text-lg ">
           <div className="py-10 flex flex-col ">
-            <div className="py-1 pl-2 pr-10 w-full bg-indigo-100 border-b-2 border-b-gray-700">
+            <div className="py-1 pl-2 pr-10 w-full bg-indigo-100 border-b-2 border-b-gray-700 break-words">
               {agenda?.subject}
             </div>
             <span className="text-sm font-mono pl-2 py-2">
               by {agendaAuthor ? agendaAuthor.name : "Unknown"}
             </span>
-            <div className="border-y h-2 border-gray-300"></div>
+            <div
+              id="content-start"
+              className="border-y h-2 border-gray-300"
+            ></div>
             <div className=" mt-11 mb-8">
               <div className="flex justify-between px-2 mt-3 font-semibold text-3xl">
-                <span className="h-7 w-1/2 ">
+                <span className="min-h-7 max-w-1/2 break-words ">
                   {agenda?.opinions[0].opinionText}
                 </span>
-                <span className="h-7 w-1/2 text-right">
+                <span className="min-h-7 max-w-1/2 break-words text-right">
                   {agenda?.opinions[1].opinionText}
                 </span>
               </div>
@@ -208,42 +212,53 @@ export const AgendaDetail = () => {
           )}
           <div className="border-y h-2 border-gray-300"></div>
           <div className="py-10">
-            {comments?.map((comment, index) => {
-              return (
-                <div key={index}>
-                  <CommentFrame comment={comment} />
-                  <div className=" text-end">
-                    {isLoggedIn && (
-                      <button
-                        className=" text-sm font-light"
-                        onClick={() => {
-                          onReCommentClick(index);
-                        }}
+            <div className="mb-3">
+              {comments?.map((comment, index) => {
+                return (
+                  <div key={index}>
+                    <CommentFrame comment={comment} />
+                    <div className=" text-end">
+                      {isLoggedIn && (
+                        <button
+                          className=" text-sm font-light"
+                          onClick={() => {
+                            onReCommentClick(index);
+                          }}
+                        >
+                          댓글
+                        </button>
+                      )}
+                    </div>
+                    {reCommentNum === index && agenda && (
+                      <div
+                        className={
+                          "mt-1 " + (comment.depth === 0 ? "pl-3" : "pl-8")
+                        }
                       >
-                        댓글
-                      </button>
+                        <CreateComments
+                          agendaId={agenda?.id}
+                          bundleId={comment.bundleId}
+                          commentPage={commentPage}
+                        />
+                      </div>
                     )}
                   </div>
-                  {reCommentNum === index && agenda && (
-                    <div
-                      className={
-                        "mt-1 " + (comment.depth === 0 ? "pl-3" : "pl-8")
-                      }
-                    >
-                      <CreateComments
-                        agendaId={agenda?.id}
-                        bundleId={comment.bundleId}
-                        commentPage={commentPage}
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
             {agenda && (
               <CreateComments agendaId={agenda?.id} commentPage={commentPage} />
             )}
           </div>
+          <div id="content-end" className="border-b h-2 border-gray-300"></div>
+        </div>
+        <div className="pt-32 pb-20">
+          {agenda && (
+            <AgendaList
+              category={agenda.category}
+              defaultPage={agendaListDefaultPageVar()}
+            />
+          )}
         </div>
       </div>
     </div>

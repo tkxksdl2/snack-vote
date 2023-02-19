@@ -5,6 +5,7 @@ export const AGENDA_FRAGMENT = gql`
     id
     subject
     seriousness
+    category
     opinions {
       id
       opinionText

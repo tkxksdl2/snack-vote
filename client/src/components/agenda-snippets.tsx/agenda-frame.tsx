@@ -7,11 +7,11 @@ interface IAgendaFrameProp {
 
 const makeR = (v: number): number => {
   if (v >= 5) return 255;
-  return 240 - 25 * v;
+  return Math.round(v * 25.5);
 };
 const makeG = (v: number): number => {
   if (v <= 5) return 255;
-  return 240 - 25 * v;
+  return Math.round((10 - v) * 25.5);
 };
 
 export const AgendaFrame: React.FC<IAgendaFrameProp> = ({ agenda }) => {
@@ -29,22 +29,24 @@ export const AgendaFrame: React.FC<IAgendaFrameProp> = ({ agenda }) => {
         id="subject"
         className="flex justify-between font-bold text-left text-lg mx-2 mt-1 border-b-2 border-gray-800"
       >
-        <span className=" overflow-hidden h-7">{agenda.subject}</span>
+        <span className="h-7 overflow-hidden overflow-ellipsis whitespace-nowrap">
+          {agenda.subject}
+        </span>
         <span
           className="border-2 border-gray-300 text-sm rounded-full w-6 h-6 text-center"
           style={{
-            backgroundColor: `rgb(${makeR(agenda.seriousness)},
-                              ${makeG(agenda.seriousness)},0)`,
+            backgroundColor: `rgba(${makeR(agenda.seriousness)},
+                              ${makeG(agenda.seriousness)},100, 0.7)`,
           }}
         >
           {agenda.seriousness}
         </span>
       </div>
       <div className="flex justify-between px-2 mt-3 font-semibold">
-        <span className="h-7 overflow-hidden">
+        <span className="h-7 overflow-hidden overflow-ellipsis whitespace-nowrap">
           {agenda.opinions[0].opinionText}
         </span>
-        <span className="h-7 overflow-hidden">
+        <span className="h-7 overflow-hidden overflow-ellipsis whitespace-nowrap">
           {agenda.opinions[1].opinionText}
         </span>
       </div>

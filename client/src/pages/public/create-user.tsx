@@ -5,7 +5,7 @@ import {
   CreateUserMutation,
   CreateUserMutationVariables,
   UserRole,
-} from "../gql/graphql";
+} from "../../gql/graphql";
 
 const CREATE_USER = gql`
   mutation createUser($input: CreateUserInput!) {
@@ -100,10 +100,10 @@ export const CreateUser = () => {
           ></input>
           <div className="flex justify-center">
             <button
-              className={`w-1/3 py-1 my-3 rounded-3xl text-white 
-            ${loading ? "bg-slate-700 pointer-events-none" : "bg-slate-500"}`}
+              className={`submit-btn 
+            ${loading ? " bg-slate-700 pointer-events-none" : "bg-slate-500"}`}
             >
-              로그인
+              회원 가입
             </button>
           </div>
         </form>

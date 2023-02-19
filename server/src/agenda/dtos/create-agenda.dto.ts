@@ -7,6 +7,7 @@ import { Agenda } from '../entities/agenda.entity';
 export class CreateAgendaInput extends PickType(Agenda, [
   'subject',
   'seriousness',
+  'category',
 ]) {
   @Field((type) => String)
   @IsString()
