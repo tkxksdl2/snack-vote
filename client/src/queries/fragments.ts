@@ -23,6 +23,7 @@ export const COMMENT_FRAGMENT = gql`
     deletedAt
     depth
     author {
+      id
       name
     }
   }

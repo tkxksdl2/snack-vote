@@ -1,7 +1,7 @@
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, useReactiveVar } from "@apollo/client";
 import { useForm } from "react-hook-form";
-import { cache } from "../../apollo";
-import { COMMENT_FRAGMENT } from "../../fragments";
+import { cache, isLoggedInVar } from "../../apollo";
+import { COMMENT_FRAGMENT } from "../../queries/fragments";
 import { getFragmentData } from "../../gql";
 import {
   CommentPartsFragment,
@@ -9,20 +9,8 @@ import {
   CreateCommentsMutationVariables,
 } from "../../gql/graphql";
 import { textareaAutoHeight } from "../../hooks/textarea-auto-height";
-import { GET_AGENDA_AND_COMMENTS } from "../../pages/public/agenda-detail";
-
-const CREATE_COMMENTS = gql`
-  mutation createComments($input: CreateCommentsInput!) {
-    createComments(input: $input) {
-      ok
-      error
-      comments {
-        ...CommentParts
-      }
-    }
-  }
-  ${COMMENT_FRAGMENT}
-`;
+import { GET_AGENDA_AND_COMMENTS } from "../../queries/query-agenda-detail";
+import { CREATE_COMMENTS } from "../../queries/query-comments";
 
 interface ICreateComments {
   agendaId: number;
@@ -80,8 +68,13 @@ export const CreateComments: React.FC<ICreateComments> = ({
       alert("댓글이 작성되었습니다");
     },
   });
+  const isLoggedIn = useReactiveVar(isLoggedInVar);
 
   const onsubmit = () => {
+    if (!isLoggedIn) {
+      alert("댓글을 달려면 로그인해주세요");
+      return;
+    }
     const { content } = getValues();
     if (!loading) {
       createComments({
@@ -116,7 +109,11 @@ export const CreateComments: React.FC<ICreateComments> = ({
           id="text-area"
           className="p-1 w-full border border-gray-400 rounded-md text-base font-normal
         focus:outline-1 focus:outline-blue-300 overflow-hidden resize-none"
-          {...register("content", { required: "내용을 입력하세요" })}
+          {...register("content", {
+            required: "내용을 입력하세요",
+            maxLength: { value: 1000, message: "최대 글자 수를 넘어섰습니다." },
+          })}
+          maxLength={1000}
         ></textarea>
       </div>
       <div className=" text-end">

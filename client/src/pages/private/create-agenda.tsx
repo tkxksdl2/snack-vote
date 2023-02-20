@@ -4,9 +4,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { cache } from "../../apollo";
-import { GET_AGENDA_BY_CATEGORY } from "../../components/agenda-snippets.tsx/agenda-list";
+import {
+  CREATE_AGENDA,
+  GET_AGENDA_BY_CATEGORY,
+} from "../../queries/query-agedas";
 import { CATEGORY_PARSE_OBJ } from "../../constants";
-import { AGENDA_FRAGMENT } from "../../fragments";
+import { AGENDA_FRAGMENT } from "../../queries/fragments";
 import { getFragmentData } from "../../gql";
 import {
   AgendaPartsFragment,
@@ -24,19 +27,6 @@ interface IForm {
   opinionA: string;
   opinionB: string;
 }
-
-const CREATE_AGENDA = gql`
-  mutation createAgenda($input: CreateAgendaInput!) {
-    createAgenda(input: $input) {
-      ok
-      error
-      result {
-        ...AgendaParts
-      }
-    }
-  }
-  ${AGENDA_FRAGMENT}
-`;
 
 export const CreateAgenda: React.FC<ICreateAgenda> = ({ category }) => {
   const [serious, setSerious] = useState(5);

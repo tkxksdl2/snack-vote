@@ -1,62 +1,38 @@
 import { gql, useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import React, { useState } from "react";
-import { useParams } from "react-router-dom";
-import { PercentageBar } from "../../components/agenda-snippets.tsx/percentage-bar";
-import { AGENDA_FRAGMENT, COMMENT_FRAGMENT } from "../../fragments";
+import { useNavigate, useParams } from "react-router-dom";
+import { PercentageBar } from "../../components/agenda-snippets/percentage-bar";
+import { AGENDA_FRAGMENT, COMMENT_FRAGMENT } from "../../queries/fragments";
 import { getFragmentData } from "../../gql";
 import {
   AgendaPartsFragment,
   CommentPartsFragment,
+  DeleteAgendaMutation,
+  DeleteAgendaMutationVariables,
+  DeleteCommentsMutation,
+  DeleteCommentsMutationVariables,
   GetAgendaAndCommentsQuery,
   GetAgendaAndCommentsQueryVariables,
+  UserRole,
   VoteOrUnvoteMutation,
   VoteOrUnvoteMutationVariables,
 } from "../../gql/graphql";
-import { CommentFrame } from "../../components/agenda-snippets.tsx/comment";
-import { agendaListDefaultPageVar, client, isLoggedInVar } from "../../apollo";
-import { CreateComments } from "../../components/agenda-snippets.tsx/create-comments";
-import { AgendaList } from "../../components/agenda-snippets.tsx/agenda-list";
-
-export const GET_AGENDA_AND_COMMENTS = gql`
-  query getAgendaAndComments(
-    $commentsInput: GetCommentsByAgendaInput!
-    $agendaInput: FindAgendaByIdInput!
-  ) {
-    getCommentsByAgenda(input: $commentsInput) {
-      ok
-      error
-      totalPage
-      comments {
-        ...CommentParts
-      }
-    }
-    findAgendaById(input: $agendaInput) {
-      ok
-      error
-      agenda {
-        ...AgendaParts
-        author {
-          id
-          name
-        }
-      }
-    }
-  }
-  ${COMMENT_FRAGMENT}
-  ${AGENDA_FRAGMENT}
-`;
-
-const VOTE_OR_UNVOTE = gql`
-  mutation voteOrUnvote($input: VoteOrUnvoteInput!) {
-    voteOrUnvote(input: $input) {
-      ok
-      error
-      voteCount
-      message
-      voteId
-    }
-  }
-`;
+import { CommentFrame } from "../../components/agenda-snippets/comment";
+import {
+  agendaListDefaultPageVar,
+  cache,
+  client,
+  isLoggedInVar,
+} from "../../apollo";
+import { CreateComments } from "../../components/agenda-snippets/create-comments";
+import { AgendaList } from "../../components/agenda-snippets/agenda-list";
+import { useMe } from "../../hooks/use-me";
+import {
+  GET_AGENDA_AND_COMMENTS,
+  VOTE_OR_UNVOTE,
+} from "../../queries/query-agenda-detail";
+import { DELETE_COMMENTS } from "../../queries/query-comments";
+import { DELETE_AGENDA } from "../../queries/query-agedas";
 
 type TAgendaParams = {
   id: string;
@@ -67,6 +43,9 @@ export const AgendaDetail = () => {
   const [reCommentNum, setReCommentNum] = useState(-1);
   const { id } = useParams() as TAgendaParams;
   const isLoggedIn = useReactiveVar(isLoggedInVar);
+  const { data: meData } = useMe();
+  const navigate = useNavigate();
+
   const { data, refetch } = useQuery<
     GetAgendaAndCommentsQuery,
     GetAgendaAndCommentsQueryVariables
@@ -127,6 +106,79 @@ export const AgendaDetail = () => {
     if (reCommentNum === commentIndex) setReCommentNum(-1);
     else setReCommentNum(commentIndex);
   };
+
+  const [deleteAgenda, { loading: deleteAgendaLoading }] = useMutation<
+    DeleteAgendaMutation,
+    DeleteAgendaMutationVariables
+  >(DELETE_AGENDA);
+  const onDeleteAgendaClick = (agendaId: number) => {
+    if (!deleteAgendaLoading && window.confirm("투표를 삭제하시겠습니까?")) {
+      deleteAgenda({
+        variables: { input: { agendaId } },
+        onCompleted: (data) => {
+          if (!data.deleteAgenda.ok) {
+            alert("삭제에 실패했습니다");
+            return;
+          }
+          alert("삭제에 성공했습니다.");
+          cache.evict({ id: `Agenda:${agenda?.id}` });
+          navigate(`/${agenda?.category.toLowerCase()}`);
+        },
+      });
+    }
+  };
+
+  const [deleteComments, { loading: deleteCommentsLoading }] = useMutation<
+    DeleteCommentsMutation,
+    DeleteCommentsMutationVariables
+  >(DELETE_COMMENTS);
+
+  const onDeleteCommentsClick = (commentsId: number) => {
+    if (!deleteCommentsLoading && window.confirm("댓글을 삭제하시겠습니까?")) {
+      deleteComments({
+        variables: { input: { commentsId } },
+        onCompleted: (data) => {
+          if (!data.deleteComments.ok) {
+            alert("삭제에 실패했습니다.");
+            return;
+          }
+          cache.updateQuery(
+            {
+              query: GET_AGENDA_AND_COMMENTS,
+              variables: {
+                commentsInput: { page: commentPage, agendaId: +id },
+                agendaInput: { id: +id },
+              },
+            },
+            (queryData) => {
+              return {
+                ...queryData,
+                getCommentsByAgenda: {
+                  ...queryData.getCommentsByAgenda,
+                  comments: queryData.getCommentsByAgenda.comments.map(
+                    (comment: any) => {
+                      if (comment.id === commentsId) {
+                        if (meData?.me.role !== UserRole.Admin) {
+                          return {
+                            ...comment,
+                            content: "삭제된 댓글입니다.",
+                            deletedAt: Date.now(),
+                          };
+                        }
+                        return { ...comment, deletedAt: Date.now() };
+                      }
+                      return comment;
+                    }
+                  ),
+                },
+              };
+            }
+          );
+          alert("댓글이 삭제되었습니다.");
+        },
+      });
+    }
+  };
   return (
     <div className="flex min-h-screen h-full justify-center bg-slate-300 text-gray-700">
       <div className="max-w-4xl w-full min-h-screen h-full bg-white">
@@ -135,9 +187,21 @@ export const AgendaDetail = () => {
             <div className="py-1 pl-2 pr-10 w-full bg-indigo-100 border-b-2 border-b-gray-700 break-words">
               {agenda?.subject}
             </div>
-            <span className="text-sm font-mono pl-2 py-2">
-              by {agendaAuthor ? agendaAuthor.name : "Unknown"}
-            </span>
+            <div className="flex justify-between text-sm font-mono p-2">
+              <span>by {agendaAuthor ? agendaAuthor.name : "Unknown"}</span>
+              {meData?.me.id === data?.findAgendaById.agenda?.author?.id &&
+                agenda && (
+                  <button
+                    onClick={() => {
+                      onDeleteAgendaClick(agenda?.id);
+                    }}
+                    className="hover:text-red-800"
+                  >
+                    투표 삭제
+                  </button>
+                )}
+            </div>
+
             <div
               id="content-start"
               className="border-y h-2 border-gray-300"
@@ -217,10 +281,9 @@ export const AgendaDetail = () => {
                 return (
                   <div key={index}>
                     <CommentFrame comment={comment} />
-                    <div className=" text-end">
-                      {isLoggedIn && (
+                    <div className=" text-sm font-light text-end">
+                      {isLoggedIn && !comment.deletedAt && (
                         <button
-                          className=" text-sm font-light"
                           onClick={() => {
                             onReCommentClick(index);
                           }}
@@ -228,6 +291,18 @@ export const AgendaDetail = () => {
                           댓글
                         </button>
                       )}
+                      {isLoggedIn &&
+                        meData?.me.id === comment.author?.id &&
+                        !comment.deletedAt && (
+                          <button
+                            className="ml-2 font-semibold hover:text-red-800"
+                            onClick={() => {
+                              onDeleteCommentsClick(comment.id);
+                            }}
+                          >
+                            삭제
+                          </button>
+                        )}
                     </div>
                     {reCommentNum === index && agenda && (
                       <div

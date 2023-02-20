@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { accessTokenVar, isLoggedInVar, refreshTokenIdVar } from "../apollo";
 import { LOCAL_STARAGE_REFRESH_ID, LOCAL_STARAGE_TOKEN } from "../constants";
 import { LoginMutation, LoginMutationVariables, MeQuery } from "../gql/graphql";
+import { LOGIN } from "../queries/query-users";
 
 const customStyles = {
   overlay: {
@@ -43,17 +44,6 @@ interface IForm {
 }
 
 Modal.setAppElement("#root");
-
-const LOGIN = gql`
-  mutation login($input: LoginInput!) {
-    login(input: $input) {
-      error
-      ok
-      accessToken
-      refreshTokenId
-    }
-  }
-`;
 
 export const LoginModal: React.FC<ILoginModalProps> = ({
   modalIsOpen,

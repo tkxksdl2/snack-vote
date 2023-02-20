@@ -1,9 +1,9 @@
 import { gql, useQuery } from "@apollo/client";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { AgendaFrame } from "../components/agenda-snippets.tsx/agenda-frame";
-import { AgendaList } from "../components/agenda-snippets.tsx/agenda-list";
-import { AGENDA_FRAGMENT } from "../fragments";
+import { AgendaFrame } from "../components/agenda-snippets/agenda-frame";
+import { AgendaList } from "../components/agenda-snippets/agenda-list";
+import { AGENDA_FRAGMENT } from "../queries/fragments";
 import { getFragmentData } from "../gql";
 import {
   AgendaPartsFragment,
@@ -50,7 +50,7 @@ export const Main = () => {
             <div className="py-2 w-fit border-b border-b-gray-700">새 투표</div>
           </div>
         </div>
-        <div className="pt-3 pb-10 px-5 grid lg:grid-cols-2 gap-y-8 grid-cols-1">
+        <div className="pt-3 pb-10 px-5 grid lg:grid-cols-2 gap-y-4 grid-cols-1">
           {agendas?.slice(0, 6).map((agenda, index) => {
             return (
               <div

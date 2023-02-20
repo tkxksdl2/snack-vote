@@ -1,9 +1,9 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql, useQuery, useReactiveVar } from "@apollo/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { CATEGORY_PARSE_OBJ } from "../../constants";
-import { AGENDA_FRAGMENT } from "../../fragments";
+import { AGENDA_FRAGMENT } from "../../queries/fragments";
 import { getFragmentData } from "../../gql";
 import {
   AgendaPartsFragment,
@@ -13,21 +13,8 @@ import {
 } from "../../gql/graphql";
 import { AgendaFrame } from "./agenda-frame";
 import { solid } from "@fortawesome/fontawesome-svg-core/import.macro";
-import { agendaListDefaultPageVar } from "../../apollo";
-
-export const GET_AGENDA_BY_CATEGORY = gql`
-  query getAgendasByCategory($input: GetAgendasByCategoryInput!) {
-    getAgendasByCategory(input: $input) {
-      ok
-      error
-      totalPage
-      agendas {
-        ...AgendaParts
-      }
-    }
-  }
-  ${AGENDA_FRAGMENT}
-`;
+import { agendaListDefaultPageVar, isLoggedInVar } from "../../apollo";
+import { GET_AGENDA_BY_CATEGORY } from "../../queries/query-agedas";
 
 interface IAgendaMain {
   category: Category;
@@ -42,8 +29,9 @@ export const AgendaList: React.FC<IAgendaMain> = ({
 }) => {
   const [page, setPage] = useState(defaultPage ? defaultPage : 1);
   let pageArr: number[] = [];
+  const isloggedIn = useReactiveVar(isLoggedInVar);
 
-  const { data } = useQuery<
+  const { data, loading } = useQuery<
     GetAgendasByCategoryQuery,
     GetAgendasByCategoryQueryVariables
   >(GET_AGENDA_BY_CATEGORY, {
@@ -67,7 +55,7 @@ export const AgendaList: React.FC<IAgendaMain> = ({
           <div className="py-2 w-fit border-b border-b-gray-700">
             {CATEGORY_PARSE_OBJ[category]}
           </div>
-          {!isMain && (
+          {!isMain && isloggedIn && (
             <Link to={`/${category.toLowerCase()}/create-agenda/`}>
               <div className="pt-3 text-base">
                 <FontAwesomeIcon className="mx-1" icon={solid("pencil")} />
@@ -79,7 +67,7 @@ export const AgendaList: React.FC<IAgendaMain> = ({
       </div>
       {agendas?.length ? (
         <div>
-          <div className="pt-3 pb-10 px-5 grid lg:grid-cols-2 gap-y-8 grid-cols-1">
+          <div className="pt-3 pb-10 px-5 grid lg:grid-cols-2 gap-y-4 grid-cols-1">
             {agendas.map((agenda, index) => {
               return (
                 <div

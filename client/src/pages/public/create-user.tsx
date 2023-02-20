@@ -6,15 +6,7 @@ import {
   CreateUserMutationVariables,
   UserRole,
 } from "../../gql/graphql";
-
-const CREATE_USER = gql`
-  mutation createUser($input: CreateUserInput!) {
-    createUser(input: $input) {
-      ok
-      error
-    }
-  }
-`;
+import { CREATE_USER } from "../../queries/query-users";
 
 interface Iform {
   email: string;

@@ -1,4 +1,4 @@
-import { AgendaList } from "../../components/agenda-snippets.tsx/agenda-list";
+import { AgendaList } from "../../components/agenda-snippets/agenda-list";
 import { Category } from "../../gql/graphql";
 
 interface IAgendasCategory {

@@ -54,7 +54,6 @@ export class AgendaResolver {
     return this.agendaService.getAllAgendas(getAllAgendasInput);
   }
 
-  @Role(['Any'])
   @Query((returns) => GetAgendasByCategoryOutput)
   getAgendasByCategory(
     @AuthUser() user: User,
