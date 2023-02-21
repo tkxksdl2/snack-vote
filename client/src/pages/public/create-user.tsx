@@ -1,28 +1,35 @@
 import { gql, useMutation } from "@apollo/client";
+import { useState } from "react";
+import DatePicker from "react-datepicker";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import {
   CreateUserMutation,
   CreateUserMutationVariables,
+  Sex,
   UserRole,
 } from "../../gql/graphql";
 import { CREATE_USER } from "../../queries/query-users";
+import { ko } from "date-fns/esm/locale";
+import "react-datepicker/dist/react-datepicker.css";
 
 interface Iform {
   email: string;
   password: string;
   name: string;
   role: UserRole;
+  sex: Sex;
 }
 
 export const CreateUser = () => {
   const navigate = useNavigate();
+  const [birth, setBirth] = useState(new Date());
   const onCompleted = (data: CreateUserMutation) => {
     const {
       createUser: { ok, error },
     } = data;
     if (ok) {
-      alert("회원 가입이 완료되었습니다.");
+      alert("회원 가입이 완료되었습니다. 로그인해주세요.");
       navigate("/");
     }
   };
@@ -37,7 +44,7 @@ export const CreateUser = () => {
     formState: { errors },
   } = useForm<Iform>();
   const onSubmit = () => {
-    const { email, password, name } = getValues();
+    const { email, password, name, sex } = getValues();
     createUser({
       variables: {
         input: {
@@ -45,6 +52,8 @@ export const CreateUser = () => {
           password,
           name,
           role: UserRole.Client,
+          sex,
+          birth,
         },
       },
     });
@@ -63,7 +72,7 @@ export const CreateUser = () => {
           ) : (
             ""
           )}
-          <div className="mt-2 mb-3">Email</div>
+          <div className="mt-2 mb-2">Email</div>
           <input
             {...register("email", {
               required: "Email을 입력해주세요",
@@ -76,20 +85,50 @@ export const CreateUser = () => {
             className="input"
             type="email"
           ></input>
-          <div className="mt-5 mb-3 semibold">NickName</div>
+          <div className="mt-3 mb-2 semibold">NickName</div>
           <input
             {...register("name", { required: "닉네임을 입력해주세요" })}
             placeholder="name"
             className="input"
             type="text"
           ></input>
-          <div className="mt-5 mb-3 semibold">Password</div>
+          <div className="mt-3 mb-2 semibold">Password</div>
           <input
             {...register("password", { required: "Password를 입력해주세요" })}
             placeholder="Password"
             className="input"
             type="password"
           ></input>
+          <div className="flex justify-around my-3">
+            <div>
+              <div className="mb-1">성별</div>
+              <select
+                className="bg-gray-100"
+                {...register("sex", { required: true })}
+              >
+                <option value={Sex.Male}>남</option>
+                <option value={Sex.Female}>여</option>
+              </select>
+            </div>{" "}
+            <div>
+              <div className="mb-1">생년월일</div>
+              <DatePicker
+                showYearDropdown
+                yearDropdownItemNumber={100}
+                scrollableYearDropdown
+                maxDate={new Date()}
+                selected={birth}
+                onChange={(date) => {
+                  date && setBirth(date);
+                }}
+                locale={ko}
+              />
+            </div>
+          </div>
+          <span className=" text-xs text-gray-500">
+            입력 정보는 통계를 위해서만 수집하며 다른 어떤 용도로도 사용되지
+            않습니다.
+          </span>
           <div className="flex justify-center">
             <button
               className={`submit-btn 

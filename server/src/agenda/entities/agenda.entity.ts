@@ -61,7 +61,6 @@ export class Agenda extends CommonEntity {
   @Field((type) => [Opinion])
   @OneToMany(() => Opinion, (opinion) => opinion.agenda, {
     cascade: ['insert', 'update', 'remove', 'soft-remove'],
-    eager: true,
   })
   opinions: Opinion[];
 }

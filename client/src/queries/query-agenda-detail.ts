@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { AGENDA_FRAGMENT, COMMENT_FRAGMENT } from "./fragments";
+import { AGENDA_DETAIL_FRAGMENT, COMMENT_FRAGMENT } from "./fragments";
 
 export const GET_AGENDA_AND_COMMENTS = gql`
   query getAgendaAndComments(
@@ -18,7 +18,7 @@ export const GET_AGENDA_AND_COMMENTS = gql`
       ok
       error
       agenda {
-        ...AgendaParts
+        ...AgendaDetailParts
         author {
           id
           name
@@ -27,7 +27,7 @@ export const GET_AGENDA_AND_COMMENTS = gql`
     }
   }
   ${COMMENT_FRAGMENT}
-  ${AGENDA_FRAGMENT}
+  ${AGENDA_DETAIL_FRAGMENT}
 `;
 
 export const VOTE_OR_UNVOTE = gql`

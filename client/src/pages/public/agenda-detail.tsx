@@ -2,10 +2,13 @@ import { gql, useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PercentageBar } from "../../components/agenda-snippets/percentage-bar";
-import { AGENDA_FRAGMENT, COMMENT_FRAGMENT } from "../../queries/fragments";
+import {
+  AGENDA_DETAIL_FRAGMENT,
+  COMMENT_FRAGMENT,
+} from "../../queries/fragments";
 import { getFragmentData } from "../../gql";
 import {
-  AgendaPartsFragment,
+  AgendaDetailPartsFragment,
   CommentPartsFragment,
   DeleteAgendaMutation,
   DeleteAgendaMutationVariables,
@@ -33,7 +36,9 @@ import {
 } from "../../queries/query-agenda-detail";
 import { DELETE_COMMENTS } from "../../queries/query-comments";
 import { DELETE_AGENDA } from "../../queries/query-agedas";
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { solid } from "@fortawesome/fontawesome-svg-core/import.macro";
+import { AgendaChart } from "../../components/agenda-snippets/agenda-chart";
 type TAgendaParams = {
   id: string;
 };
@@ -41,6 +46,7 @@ type TAgendaParams = {
 export const AgendaDetail = () => {
   const [commentPage, setCommentPage] = useState(1);
   const [reCommentNum, setReCommentNum] = useState(-1);
+  const [showChart, setShowChart] = useState<0 | 1 | null>();
   const { id } = useParams() as TAgendaParams;
   const isLoggedIn = useReactiveVar(isLoggedInVar);
   const { data: meData } = useMe();
@@ -55,8 +61,8 @@ export const AgendaDetail = () => {
       agendaInput: { id: +id },
     },
   });
-  const agenda = getFragmentData<AgendaPartsFragment>(
-    AGENDA_FRAGMENT,
+  const agenda = getFragmentData<AgendaDetailPartsFragment>(
+    AGENDA_DETAIL_FRAGMENT,
     data?.findAgendaById.agenda
   );
   const comments = getFragmentData<CommentPartsFragment>(
@@ -250,30 +256,69 @@ export const AgendaDetail = () => {
           </div>
           {agenda && (
             <div className="flex justify-between pb-3">
-              <button
-                onClick={() => {
-                  onVoteClick(agenda?.opinions[0].id, agenda?.opinions[1].id);
-                }}
-                className={
-                  "vote-btn " +
-                  ((!isLoggedIn || voteLoading) && "pointer-events-none")
-                }
-              >
-                투표
-              </button>
-              <button
-                onClick={() => {
-                  onVoteClick(agenda?.opinions[1].id, agenda?.opinions[0].id);
-                }}
-                className={
-                  "vote-btn " +
-                  ((!isLoggedIn || voteLoading) && "pointer-events-none")
-                }
-              >
-                투표
-              </button>
+              <div>
+                <button
+                  onClick={() => {
+                    onVoteClick(agenda?.opinions[0].id, agenda?.opinions[1].id);
+                  }}
+                  className={
+                    "vote-btn " +
+                    ((!isLoggedIn || voteLoading) && "pointer-events-none")
+                  }
+                >
+                  투표
+                </button>
+                <FontAwesomeIcon
+                  className={
+                    "cursor-pointer " + (showChart === 0 && "text-blue-500")
+                  }
+                  onClick={() => {
+                    showChart === 0 ? setShowChart(null) : setShowChart(0);
+                  }}
+                  icon={solid("chart-pie")}
+                />
+              </div>
+              <div>
+                <FontAwesomeIcon
+                  className={
+                    "cursor-pointer " + (showChart === 1 && "text-blue-500")
+                  }
+                  onClick={() => {
+                    showChart === 1 ? setShowChart(null) : setShowChart(1);
+                  }}
+                  icon={solid("chart-pie")}
+                />
+                <button
+                  onClick={() => {
+                    onVoteClick(agenda?.opinions[1].id, agenda?.opinions[0].id);
+                  }}
+                  className={
+                    "vote-btn " +
+                    ((!isLoggedIn || voteLoading) && "pointer-events-none")
+                  }
+                >
+                  투표
+                </button>
+              </div>
             </div>
           )}
+          {typeof showChart === "number" &&
+            agenda?.opinions[showChart].votedUser && (
+              <div className="bg-orange-100 rounded-xl transition-all">
+                <div className="ml-5 text-base text-gray-500 flex justify-between">
+                  <span>
+                    {agenda.opinions[showChart].opinionText} 에는 이런 사람들이
+                    투표했습니다..
+                  </span>
+                  <span className="mr-6">
+                    투표 수: {agenda?.opinions[showChart].votedUserCount}
+                  </span>
+                </div>
+                <AgendaChart
+                  votedUser={agenda?.opinions[showChart].votedUser}
+                />
+              </div>
+            )}
           <div className="border-y h-2 border-gray-300"></div>
           <div className="py-10">
             <div className="mb-3">

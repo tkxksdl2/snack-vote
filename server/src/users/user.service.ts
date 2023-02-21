@@ -37,6 +37,8 @@ export class UserService {
     name,
     password,
     role,
+    sex,
+    birth,
   }: CreateUserInput): Promise<CommonOutput> {
     try {
       const exists = await this.users.findOne({ where: { email } });
@@ -44,7 +46,7 @@ export class UserService {
         return { ok: false, error: 'User with the email is already exists.' };
       }
       const user = await this.users.save(
-        this.users.create({ email, password, name, role }),
+        this.users.create({ email, password, name, role, sex, birth }),
       );
       return { ok: true };
     } catch {

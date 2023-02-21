@@ -53,7 +53,7 @@ export class AgendaService {
     try {
       const agenda = await this.agendas.findOne({
         where: { id },
-        relations: ['author'],
+        relations: ['author', 'opinions', 'opinions.votedUser'],
       });
       if (!agenda) {
         return { ok: false, error: 'Agenda with input id is not found' };
@@ -115,6 +115,7 @@ export class AgendaService {
   }: GetAllAgendasInput): Promise<GetAllAgendasOutput> {
     try {
       const [agendas, count] = await this.agendas.findAndCount({
+        relations: ['opinions'],
         take: PAGINATION_UNIT,
         skip: PAGINATION_UNIT * (page - 1),
         order: { createdAt: 'DESC' },
@@ -136,6 +137,7 @@ export class AgendaService {
   }: GetAgendasByCategoryInput): Promise<GetAgendasByCategoryOutput> {
     try {
       const [agendas, count] = await this.agendas.findAndCount({
+        relations: ['opinions'],
         take: PAGINATION_UNIT,
         skip: PAGINATION_UNIT * (page - 1),
         where: { category },

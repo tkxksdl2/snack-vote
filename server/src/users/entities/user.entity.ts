@@ -18,7 +18,7 @@ import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from '@nestjs/common';
 import { Opinion } from 'src/agenda/entities/opinion.entity';
 import { Agenda } from 'src/agenda/entities/agenda.entity';
-import { IsEmail, IsString } from 'class-validator';
+import { IsDate, IsEmail, IsEnum, IsString } from 'class-validator';
 import { RefreshTokens } from './refresh-tokens.entity';
 import { Comments } from '../../comments/entities/comments.entity';
 
@@ -27,7 +27,13 @@ export enum UserRole {
   Admin = 'Admin',
 }
 
+export enum Sex {
+  Male = 'M',
+  Female = 'F',
+}
+
 registerEnumType(UserRole, { name: 'UserRole' });
+registerEnumType(Sex, { name: 'Sex' });
 
 @InputType('UserInputtype', { isAbstract: true })
 @ObjectType()
@@ -57,6 +63,16 @@ export class User extends CommonEntity {
   @Field((type) => String, { nullable: true })
   @IsString()
   profileImage?: string;
+
+  @Column({ nullable: true })
+  @Field((type) => Sex, { nullable: true })
+  @IsEnum(Sex)
+  sex?: Sex;
+
+  @Column({ nullable: true })
+  @Field((type) => Date, { nullable: true })
+  @IsDate()
+  birth?: Date;
 
   @Field((type) => RefreshTokens, { nullable: true })
   @OneToOne(() => RefreshTokens, (ref) => ref.user, { nullable: true })
