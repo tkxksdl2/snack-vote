@@ -1,4 +1,4 @@
-import { gql, useMutation, useReactiveVar } from "@apollo/client";
+import { useMutation, useReactiveVar } from "@apollo/client";
 import { useForm } from "react-hook-form";
 import { cache, isLoggedInVar } from "../../apollo";
 import { COMMENT_FRAGMENT } from "../../queries/fragments";
@@ -15,18 +15,25 @@ import { CREATE_COMMENTS } from "../../queries/query-comments";
 interface ICreateComments {
   agendaId: number;
   bundleId?: number;
+  totalPage: number;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  setReCommentNum?: React.Dispatch<React.SetStateAction<number>>;
   commentPage: number;
 }
 
 export const CreateComments: React.FC<ICreateComments> = ({
   agendaId,
   bundleId,
+  totalPage,
   commentPage,
+  setPage,
+  setReCommentNum,
 }) => {
   const {
     register,
     handleSubmit,
     getValues,
+    setValue,
     formState: { errors },
   } = useForm<{ content: string }>();
   const [createComments, { loading }] = useMutation<
@@ -38,33 +45,61 @@ export const CreateComments: React.FC<ICreateComments> = ({
         COMMENT_FRAGMENT,
         data.createComments.comments
       );
-      cache.updateQuery(
-        {
-          query: GET_AGENDA_AND_COMMENTS,
-          variables: {
-            commentsInput: { page: commentPage, agendaId },
-            agendaInput: { id: agendaId },
-          },
-        },
-        (data) => {
-          const newComments = [...data.getCommentsByAgenda.comments];
-          let spliceIndex;
-          newComments.forEach((v, index) => {
-            if (v.bundleId === comment?.bundleId) {
-              spliceIndex = index + 1;
-            }
-          });
-          if (spliceIndex) newComments.splice(spliceIndex, 0, comment);
-          else newComments.push(comment);
-          return {
-            ...data,
-            getCommentsByAgenda: {
-              ...data.getCommentsByAgenda,
-              comments: newComments,
+      if (bundleId && setReCommentNum) {
+        // re-comment. splice new comment current Page
+        cache.updateQuery(
+          {
+            query: GET_AGENDA_AND_COMMENTS,
+            variables: {
+              commentsInput: { page: commentPage, agendaId },
+              agendaInput: { id: agendaId },
             },
-          };
-        }
-      );
+          },
+          (data) => {
+            const newComments = [...data.getCommentsByAgenda.comments];
+            let spliceIndex;
+            newComments.forEach((v, index) => {
+              if (v.bundleId === comment?.bundleId) {
+                spliceIndex = index + 1;
+              }
+            });
+            if (spliceIndex) newComments.splice(spliceIndex, 0, comment);
+            else newComments.push(comment);
+            return {
+              ...data,
+              getCommentsByAgenda: {
+                ...data.getCommentsByAgenda,
+                comments: newComments,
+              },
+            };
+          }
+        );
+        setReCommentNum(-1);
+      } else {
+        // not re-comment. push new comment last page.
+        cache.updateQuery(
+          {
+            query: GET_AGENDA_AND_COMMENTS,
+            variables: {
+              commentsInput: { page: totalPage, agendaId },
+              agendaInput: { id: agendaId },
+            },
+          },
+          (data) => {
+            const newComments = [...data.getCommentsByAgenda.comments];
+            newComments.push(comment);
+            return {
+              ...data,
+              getCommentsByAgenda: {
+                ...data.getCommentsByAgenda,
+                comments: newComments,
+              },
+            };
+          }
+        );
+        setPage(totalPage);
+      }
+      setValue("content", "");
       alert("댓글이 작성되었습니다");
     },
   });

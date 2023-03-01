@@ -15,6 +15,10 @@ import {
   GetCommentsByAgendaInput,
   GetCommentsByAgendaOutput,
 } from './dtos/get-comments-by-agenda.dto';
+import {
+  GetMyCommentsInput,
+  GetMyCommentsOutput,
+} from './dtos/get-my-comments';
 
 @Resolver()
 export class CommentsResolver {
@@ -48,5 +52,14 @@ export class CommentsResolver {
     @Args('input') deleteCommentsInput: DeleteCommentsInput,
   ): Promise<DeleteCommentsOutput> {
     return this.commentsService.deleteComments(user, deleteCommentsInput);
+  }
+
+  @Role(['Any'])
+  @Query((returns) => GetMyCommentsOutput)
+  getMyComments(
+    @AuthUser() user: User,
+    @Args('input') getMyCommentsInput: GetMyCommentsInput,
+  ): Promise<GetMyCommentsOutput> {
+    return this.commentsService.getMyComments(user, getMyCommentsInput);
   }
 }

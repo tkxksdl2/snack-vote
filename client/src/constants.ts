@@ -6,3 +6,7 @@ export const CATEGORY_PARSE_OBJ = {
   Game: "게임",
   Culture: "문화",
 };
+export const SEX_PARSE_OBJ = {
+  Male: "남",
+  Female: "여",
+};

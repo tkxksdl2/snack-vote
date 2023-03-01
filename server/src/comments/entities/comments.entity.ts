@@ -29,14 +29,13 @@ export class Comments extends CommonEntity {
   @Field((type) => User, { nullable: true })
   @ManyToOne(() => User, (user) => user.comments, {
     onDelete: 'SET NULL',
-    onUpdate: 'SET NULL',
     nullable: true,
     eager: true,
   })
   author?: User;
 
-  @Field((type) => Agenda)
-  @ManyToOne(() => Agenda, (agenda) => agenda.comments, { onDelete: 'CASCADE' })
+  @Field((type) => Agenda, { nullable: true })
+  @ManyToOne(() => Agenda, (agenda) => agenda.comments)
   agenda: Agenda;
 
   @BeforeInsert()

@@ -26,10 +26,8 @@ export class Opinion extends CommonEntity {
   @IsBoolean()
   opinionType: boolean;
 
-  @Field((type) => Agenda)
-  @ManyToOne(() => Agenda, (agenda) => agenda.opinions, {
-    onDelete: 'CASCADE',
-  })
+  @Field((type) => Agenda, { nullable: true })
+  @ManyToOne(() => Agenda, (agenda) => agenda.opinions)
   agenda: Agenda;
 
   @Field((type) => [User], { nullable: true })

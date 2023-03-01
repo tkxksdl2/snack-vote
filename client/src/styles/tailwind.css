@@ -1,8 +1,16 @@
 @tailwind base;
 @tailwind components;
 
+.bg-header {
+  background-color: #c3ebf0;
+}
+
+.bg-naviation {
+  background-color: #13005a;
+}
+
 .per-bar-base {
-  @apply bg-blue-200 rounded-full w-full flex;
+  @apply bg-blue-200 rounded-full w-full flex border border-gray-200;
 }
 
 .per-Bar-l {
@@ -42,6 +50,11 @@
   height: 600px;
 }
 
+.u-user-form {
+  width: 400px;
+  height: 500px;
+}
+
 .c-agenda-form {
   min-height: 500px;
 }
@@ -54,6 +67,10 @@
   @apply hover:text-lime-500 mx-5;
 }
 
+.visible-hidden {
+  visibility: hidden;
+}
+
 .hiddendiv {
   display: none;
   white-space: pre-wrap;
@@ -61,4 +78,18 @@
   min-height: 5rem;
 }
 
+.my-agenda-grid {
+  display: grid;
+  grid-template-columns: 1fr 4fr 1fr;
+}
+
+.voted-opinions-grid {
+  display: grid;
+  grid-template-columns: 2fr 4fr 3fr 1fr;
+}
+
+.my-comments-grid {
+  display: grid;
+  grid-template-columns: 2fr 4fr 4fr;
+}
 @tailwind utilities;

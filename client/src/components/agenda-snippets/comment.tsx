@@ -1,6 +1,6 @@
 import { CommentPartsFragment, UserRole } from "../../gql/graphql";
-import date from "date-and-time";
 import { useMe } from "../../hooks/use-me";
+import { parseDate } from "../../hooks/parse";
 
 interface ICommentProp {
   comment: CommentPartsFragment;
@@ -8,10 +8,7 @@ interface ICommentProp {
 
 export const CommentFrame: React.FC<ICommentProp> = ({ comment }) => {
   const { data } = useMe();
-  const parsedDate = date.format(
-    new Date(comment.createdAt),
-    "YYYY/MM/DD HH:mm"
-  );
+  const parsedDate = parseDate(comment.createdAt);
   return (
     <div className="pt-2 min-h-comment">
       <div className={comment.depth === 0 ? "pl-3" : "pl-8"}>

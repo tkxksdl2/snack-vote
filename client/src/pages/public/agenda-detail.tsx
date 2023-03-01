@@ -1,6 +1,6 @@
 import { gql, useMutation, useQuery, useReactiveVar } from "@apollo/client";
-import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { PercentageBar } from "../../components/agenda-snippets/percentage-bar";
 import {
   AGENDA_DETAIL_FRAGMENT,
@@ -21,12 +21,7 @@ import {
   VoteOrUnvoteMutationVariables,
 } from "../../gql/graphql";
 import { CommentFrame } from "../../components/agenda-snippets/comment";
-import {
-  agendaListDefaultPageVar,
-  cache,
-  client,
-  isLoggedInVar,
-} from "../../apollo";
+import { agendaListDefaultPageVar, cache, isLoggedInVar } from "../../apollo";
 import { CreateComments } from "../../components/agenda-snippets/create-comments";
 import { AgendaList } from "../../components/agenda-snippets/agenda-list";
 import { useMe } from "../../hooks/use-me";
@@ -39,6 +34,10 @@ import { DELETE_AGENDA } from "../../queries/query-agedas";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { solid } from "@fortawesome/fontawesome-svg-core/import.macro";
 import { AgendaChart } from "../../components/agenda-snippets/agenda-chart";
+import { Helmet } from "react-helmet-async";
+import { Pagination } from "../../components/pagination";
+import { parseDate } from "../../hooks/parse";
+import { SeriousnessNode } from "../../components/agenda-snippets/seriousness-node";
 type TAgendaParams = {
   id: string;
 };
@@ -47,11 +46,19 @@ export const AgendaDetail = () => {
   const [commentPage, setCommentPage] = useState(1);
   const [reCommentNum, setReCommentNum] = useState(-1);
   const [showChart, setShowChart] = useState<0 | 1 | null>();
+  const [voteState, setVoteState] = useState({
+    voteAHasMe: false,
+    voteBHasMe: false,
+  });
+  const subjectRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
+  useEffect(() => {
+    subjectRef.current?.scrollIntoView({ behavior: "auto", block: "center" });
+  }, [location]);
   const { id } = useParams() as TAgendaParams;
   const isLoggedIn = useReactiveVar(isLoggedInVar);
   const { data: meData } = useMe();
   const navigate = useNavigate();
-
   const { data, refetch } = useQuery<
     GetAgendaAndCommentsQuery,
     GetAgendaAndCommentsQueryVariables
@@ -69,11 +76,32 @@ export const AgendaDetail = () => {
     COMMENT_FRAGMENT,
     data?.getCommentsByAgenda.comments
   );
+
+  if (agenda?.opinions[0].votedUser) {
+    let has = false;
+    for (const user of agenda?.opinions[0].votedUser) {
+      if (user.id === meData?.me.id) has = true;
+    }
+    if (has && voteState.voteAHasMe === false)
+      setVoteState({ ...voteState, voteAHasMe: true });
+    else if (!has && voteState.voteAHasMe === true)
+      setVoteState({ ...voteState, voteAHasMe: false });
+  }
+  if (agenda?.opinions[1].votedUser) {
+    let has = false;
+    for (const user of agenda?.opinions[1].votedUser) {
+      if (user.id === meData?.me.id) has = true;
+    }
+    if (has && voteState.voteBHasMe === false)
+      setVoteState({ ...voteState, voteBHasMe: true });
+    else if (!has && voteState.voteBHasMe === true)
+      setVoteState({ ...voteState, voteBHasMe: false });
+  }
+
   const voteCntA = agenda ? agenda.opinions[0].votedUserCount : 0;
   const voteCntB = agenda ? agenda.opinions[1].votedUserCount : 0;
   let totalCnt = voteCntA + voteCntB;
   const agendaAuthor = data?.findAgendaById.agenda?.author;
-
   const [voteOrUnvote, { loading: voteLoading }] = useMutation<
     VoteOrUnvoteMutation,
     VoteOrUnvoteMutationVariables
@@ -81,21 +109,47 @@ export const AgendaDetail = () => {
     onCompleted: (data) => {
       const { ok, error, message, voteCount, voteId } = data.voteOrUnvote;
       if (ok && message) {
+        cache.updateFragment(
+          {
+            id: `Opinion:${voteId}`,
+            fragment: gql`
+              fragment votedOp on Opinion {
+                votedUserCount
+                votedUser {
+                  id
+                }
+              }
+            `,
+          },
+          (data) => {
+            let nextVotedUser = data.votedUser;
+            let nextVotedUserCount = data.votedUserCount;
+            if (message.split(" ")[1] === "voted") {
+              nextVotedUser = [
+                ...nextVotedUser,
+                {
+                  __typename: "User",
+                  id: meData?.me.id,
+                },
+              ];
+              nextVotedUserCount++;
+            } else {
+              nextVotedUser = nextVotedUser.filter(
+                (v: any) => v.id !== meData?.me.id
+              );
+              nextVotedUserCount--;
+            }
+            return {
+              ...data,
+              votedUser: nextVotedUser,
+              votedUserCount: nextVotedUserCount,
+            };
+          }
+        );
         alert(message);
       } else if (error) {
         alert(error);
       }
-      client.writeFragment({
-        id: `Opinion:${voteId}`,
-        fragment: gql`
-          fragment votedOp on Opinion {
-            votedUserCount
-          }
-        `,
-        data: {
-          votedUserCount: voteCount,
-        },
-      });
     },
   });
   const onVoteClick = (voteId: number, otherOpinionId: number) => {
@@ -186,15 +240,29 @@ export const AgendaDetail = () => {
     }
   };
   return (
-    <div className="flex min-h-screen h-full justify-center bg-slate-300 text-gray-700">
+    <div
+      key={`agenda-detail-${agenda?.id}`}
+      className="flex min-h-screen h-full justify-center bg-slate-300 text-gray-700"
+    >
       <div className="max-w-4xl w-full min-h-screen h-full bg-white">
         <div className="px-5 font-semibold text-lg ">
           <div className="py-10 flex flex-col ">
-            <div className="py-1 pl-2 pr-10 w-full bg-indigo-100 border-b-2 border-b-gray-700 break-words">
-              {agenda?.subject}
+            <Helmet>
+              <title>{agenda?.subject}</title>
+            </Helmet>
+            <div
+              ref={subjectRef}
+              id="subject"
+              className="py-1 px-2 w-full bg-indigo-100 border-b-2 border-b-gray-700 break-words relative"
+            >
+              {agenda && <SeriousnessNode seriousness={agenda?.seriousness} />}
+              <span className="ml-2">{agenda?.subject}</span>
             </div>
             <div className="flex justify-between text-sm font-mono p-2">
-              <span>by {agendaAuthor ? agendaAuthor.name : "Unknown"}</span>
+              <span>
+                by {agendaAuthor ? agendaAuthor.name : "Unknown"}
+                <span className="ml-3">{parseDate(agenda?.createdAt)}</span>
+              </span>
               {meData?.me.id === data?.findAgendaById.agenda?.author?.id &&
                 agenda && (
                   <button
@@ -251,7 +319,7 @@ export const AgendaDetail = () => {
               voteCntA={voteCntA}
               voteCntB={voteCntB}
               width={856}
-              height={36}
+              isBig={true}
             />
           </div>
           {agenda && (
@@ -263,7 +331,8 @@ export const AgendaDetail = () => {
                   }}
                   className={
                     "vote-btn " +
-                    ((!isLoggedIn || voteLoading) && "pointer-events-none")
+                    (voteState.voteAHasMe && "text-blue-500 ") +
+                    ((!isLoggedIn || voteLoading) && "pointer-events-none ")
                   }
                 >
                   투표
@@ -281,7 +350,7 @@ export const AgendaDetail = () => {
               <div>
                 <FontAwesomeIcon
                   className={
-                    "cursor-pointer " + (showChart === 1 && "text-blue-500")
+                    "cursor-pointer " + (showChart === 1 && "text-blue-500 ")
                   }
                   onClick={() => {
                     showChart === 1 ? setShowChart(null) : setShowChart(1);
@@ -294,7 +363,8 @@ export const AgendaDetail = () => {
                   }}
                   className={
                     "vote-btn " +
-                    ((!isLoggedIn || voteLoading) && "pointer-events-none")
+                    (voteState.voteBHasMe && "text-blue-500 ") +
+                    ((!isLoggedIn || voteLoading) && "pointer-events-none ")
                   }
                 >
                   투표
@@ -322,53 +392,84 @@ export const AgendaDetail = () => {
           <div className="border-y h-2 border-gray-300"></div>
           <div className="py-10">
             <div className="mb-3">
-              {comments?.map((comment, index) => {
-                return (
-                  <div key={index}>
-                    <CommentFrame comment={comment} />
-                    <div className=" text-sm font-light text-end">
-                      {isLoggedIn && !comment.deletedAt && (
-                        <button
-                          onClick={() => {
-                            onReCommentClick(index);
-                          }}
-                        >
-                          댓글
-                        </button>
-                      )}
-                      {isLoggedIn &&
-                        meData?.me.id === comment.author?.id &&
-                        !comment.deletedAt && (
+              {comments &&
+                comments.length > 0 &&
+                comments.map((comment, index) => {
+                  return (
+                    <div key={index}>
+                      <CommentFrame comment={comment} />
+                      <div className=" text-sm font-light text-end">
+                        {isLoggedIn && !comment.deletedAt && (
                           <button
-                            className="ml-2 font-semibold hover:text-red-800"
                             onClick={() => {
-                              onDeleteCommentsClick(comment.id);
+                              onReCommentClick(index);
                             }}
                           >
-                            삭제
+                            댓글
                           </button>
                         )}
-                    </div>
-                    {reCommentNum === index && agenda && (
-                      <div
-                        className={
-                          "mt-1 " + (comment.depth === 0 ? "pl-3" : "pl-8")
-                        }
-                      >
-                        <CreateComments
-                          agendaId={agenda?.id}
-                          bundleId={comment.bundleId}
-                          commentPage={commentPage}
-                        />
+                        {isLoggedIn &&
+                          meData?.me.id === comment.author?.id &&
+                          !comment.deletedAt && (
+                            <button
+                              className="ml-2 font-semibold hover:text-red-800"
+                              onClick={() => {
+                                onDeleteCommentsClick(comment.id);
+                              }}
+                            >
+                              삭제
+                            </button>
+                          )}
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+                      {reCommentNum === index &&
+                        agenda &&
+                        data?.getCommentsByAgenda.totalPage && (
+                          <div
+                            className={
+                              "mt-1 " + (comment.depth === 0 ? "pl-3" : "pl-8")
+                            }
+                          >
+                            <CreateComments
+                              agendaId={agenda?.id}
+                              bundleId={comment.bundleId}
+                              commentPage={commentPage}
+                              totalPage={data?.getCommentsByAgenda.totalPage}
+                              setPage={setCommentPage}
+                              setReCommentNum={setReCommentNum}
+                            />
+                          </div>
+                        )}
+                    </div>
+                  );
+                })}
             </div>
-            {agenda && (
-              <CreateComments agendaId={agenda?.id} commentPage={commentPage} />
-            )}
+            {data?.getCommentsByAgenda &&
+              typeof data?.getCommentsByAgenda.totalPage === "number" && (
+                <div className="mb-3 text-base font-normal">
+                  <Pagination
+                    page={commentPage}
+                    totalPage={
+                      data?.getCommentsByAgenda.totalPage === 0
+                        ? 1
+                        : data?.getCommentsByAgenda.totalPage
+                    }
+                    setPage={setCommentPage}
+                  />
+                </div>
+              )}
+            {agenda &&
+              typeof data?.getCommentsByAgenda.totalPage === "number" && (
+                <CreateComments
+                  agendaId={agenda?.id}
+                  commentPage={commentPage}
+                  totalPage={
+                    data?.getCommentsByAgenda.totalPage === 0
+                      ? 1
+                      : data?.getCommentsByAgenda.totalPage
+                  }
+                  setPage={setCommentPage}
+                />
+              )}
           </div>
           <div id="content-end" className="border-b h-2 border-gray-300"></div>
         </div>

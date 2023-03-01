@@ -1,4 +1,4 @@
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { useState } from "react";
 import DatePicker from "react-datepicker";
 import { useForm } from "react-hook-form";
@@ -11,6 +11,7 @@ import {
 } from "../../gql/graphql";
 import { CREATE_USER } from "../../queries/query-users";
 import { ko } from "date-fns/esm/locale";
+import { Helmet } from "react-helmet-async";
 import "react-datepicker/dist/react-datepicker.css";
 
 interface Iform {
@@ -61,6 +62,9 @@ export const CreateUser = () => {
   return (
     <div className="flex min-h-screen h-full py-20 justify-center bg-slate-300 ">
       <div className="flex flex-col justify-center c-user-form bg-white rounded-md px-3 text-gray-700">
+        <Helmet>
+          <title>SnackVote</title>
+        </Helmet>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="text-4xl font-semibold mb-5">회원가입</div>
           {errors.email?.message ? (

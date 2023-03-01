@@ -6,10 +6,15 @@ export const AGENDA_FRAGMENT = gql`
     subject
     seriousness
     category
+    createdAt
     opinions {
       id
       opinionText
       votedUserCount
+    }
+    author {
+      id
+      name
     }
   }
 `;
@@ -20,6 +25,7 @@ export const AGENDA_DETAIL_FRAGMENT = gql`
     subject
     seriousness
     category
+    createdAt
     opinions {
       id
       opinionText

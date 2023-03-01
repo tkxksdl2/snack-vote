@@ -1,7 +1,6 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { Role } from 'src/auth/role.decorator';
-import { CommonOutput } from 'src/common/dtos/output.dto';
 import { User } from 'src/users/entities/user.entity';
 import { AgendaService } from './agenda.service';
 import {
@@ -17,9 +16,9 @@ import {
   FindAgendaByIdOutput,
 } from './dtos/find-agenda-by-id.dto';
 import {
-  GetAgendasByCategoryInput,
-  GetAgendasByCategoryOutput,
-} from './dtos/get-agendas-by-category';
+  SearchAgendasByCategoryInput,
+  SearchAgendasByCategoryOutput,
+} from './dtos/search-agendas-by-category';
 import {
   GetAllAgendasInput,
   GetAllAgendasOutput,
@@ -29,14 +28,15 @@ import {
   GetmyAgendasOutput,
 } from './dtos/get-my-agendas.dto';
 import {
-  GetVotedAgendasInput,
-  GetVotedAgendasOutput,
-} from './dtos/get-voted-agendas.dto';
+  GetVotedOpinionsInput,
+  GetVotedOpinionsOutput,
+} from './dtos/get-voted-opinions.dto';
 import {
   VoteOrUnvoteInput,
   VoteOrUnvoteOutput,
 } from './dtos/vote-or-unvote.dto';
 import { Agenda } from './entities/agenda.entity';
+import { GetMosteVotedAgendasOutput } from './dtos/get-most-voted-agendas';
 
 @Resolver((of) => Agenda)
 export class AgendaResolver {
@@ -54,12 +54,18 @@ export class AgendaResolver {
     return this.agendaService.getAllAgendas(getAllAgendasInput);
   }
 
-  @Query((returns) => GetAgendasByCategoryOutput)
-  getAgendasByCategory(
-    @AuthUser() user: User,
-    @Args('input') getAgendasByCategoryInput: GetAgendasByCategoryInput,
-  ): Promise<GetAgendasByCategoryOutput> {
-    return this.agendaService.getAgendasByCategory(getAgendasByCategoryInput);
+  @Query((returns) => SearchAgendasByCategoryOutput)
+  searchAgendasByCategory(
+    @Args('input') searchAgendasByCategoryInput: SearchAgendasByCategoryInput,
+  ): Promise<SearchAgendasByCategoryOutput> {
+    return this.agendaService.searchAgendasByCategory(
+      searchAgendasByCategoryInput,
+    );
+  }
+
+  @Query((returns) => GetMosteVotedAgendasOutput)
+  getMostVotedAgendas(): Promise<GetMosteVotedAgendasOutput> {
+    return this.agendaService.getMostVotedAgendas();
   }
 
   @Role(['Any'])
@@ -99,11 +105,11 @@ export class AgendaResolver {
   }
 
   @Role(['Any'])
-  @Query((returns) => GetVotedAgendasOutput)
-  getVotedAgendas(
+  @Query((returns) => GetVotedOpinionsOutput)
+  getVotedOpinions(
     @AuthUser() user: User,
-    @Args('input') getVotedAgendasInput: GetVotedAgendasInput,
-  ): Promise<GetVotedAgendasOutput> {
-    return this.agendaService.getVotedAgendas(user, getVotedAgendasInput);
+    @Args('input') getVotedOpinionsInput: GetVotedOpinionsInput,
+  ): Promise<GetVotedOpinionsOutput> {
+    return this.agendaService.getVotedOpinions(user, getVotedOpinionsInput);
   }
 }

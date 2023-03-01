@@ -7,6 +7,8 @@ export const ME = gql`
       email
       name
       role
+      sex
+      birth
     }
   }
 `;
@@ -25,6 +27,15 @@ export const LOGIN = gql`
 export const CREATE_USER = gql`
   mutation createUser($input: CreateUserInput!) {
     createUser(input: $input) {
+      ok
+      error
+    }
+  }
+`;
+
+export const UPDATE_USER = gql`
+  mutation updateUser($input: UpdateUserInput!) {
+    updateUser(input: $input) {
       ok
       error
     }

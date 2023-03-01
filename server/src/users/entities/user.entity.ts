@@ -64,13 +64,13 @@ export class User extends CommonEntity {
   @IsString()
   profileImage?: string;
 
-  @Column({ nullable: true })
-  @Field((type) => Sex, { nullable: true })
+  @Column()
+  @Field((type) => Sex)
   @IsEnum(Sex)
   sex?: Sex;
 
-  @Column({ nullable: true })
-  @Field((type) => Date, { nullable: true })
+  @Column()
+  @Field((type) => Date)
   @IsDate()
   birth?: Date;
 

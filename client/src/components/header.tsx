@@ -13,6 +13,7 @@ import {
   CATEGORY_PARSE_OBJ,
   LOCAL_STARAGE_REFRESH_ID,
   LOCAL_STARAGE_TOKEN,
+  SEX_PARSE_OBJ,
 } from "../constants";
 import { Category } from "../gql/graphql";
 import { resetDefaultPage } from "../hooks/reset-default-page";
@@ -43,7 +44,7 @@ export const Header = () => {
     root?.appendChild(closeUserDetailDiv);
   }, []);
 
-  const openUserModal = () => {
+  const openUserDropout = () => {
     closeUserDetailDiv.style.visibility = "visible";
     setUserIsOpen(true);
   };
@@ -54,17 +55,22 @@ export const Header = () => {
     localStorage.removeItem(LOCAL_STARAGE_REFRESH_ID);
     accessTokenVar(null);
     refreshTokenIdVar(null);
-    cache.evict({ id: `User:${data?.me.id}` + "" });
+    cache.reset();
   };
   const isLoggedIn = useReactiveVar(isLoggedInVar);
   const { data, refetch, loading } = useMe();
   return (
     <React.Fragment>
-      <header className="pt-4 pb-2 lg:px-5 px-1 bg-teal-100 border border-b-2 flex justify-center">
+      <header className="pt-3 pb-1 lg:px-5 px-1 bg-header border border-b-2 flex justify-center">
         <div className="lg:max-w-4xl max-w-screen-md w-full px-2 flex justify-between text-gray-700">
           <div className="lg:w-auto w-60">
             <Link to="/">
-              <span className="font-bold text-4xl">Snack Vote</span>
+              <span
+                className="font-bold text-4xl"
+                style={{ fontFamily: '"Zen Dots" , cursive' }}
+              >
+                <span className=" text-orange-700">Snack</span> Vote
+              </span>
             </Link>
             <span className="mx-10 text-sm font-bold text-gray-500">
               간식처럼 간단한 투표
@@ -86,16 +92,17 @@ export const Header = () => {
             </React.Fragment>
           ) : (
             <div className="flex items-end">
-              <div className="h-6 w-6 mb-1 mx-2">
+              <div className="h-6 w-6 mb-2 mx-2">
                 <button>
                   <FontAwesomeIcon
-                    onClick={openUserModal}
+                    onClick={openUserDropout}
                     className="h-6 w-6 p-1 rounded-full bg-gray-300"
                     icon={solid("user")}
                   />
                 </button>
-                {userIsOpen && (
+                {userIsOpen && data && (
                   <div
+                    id="user-dropout"
                     className="relative flex flex-col h-fit w-52 shadow-md z-10 
                                font-semibold bg-white break-words rounded-sm right-40"
                   >
@@ -103,14 +110,38 @@ export const Header = () => {
                       <FontAwesomeIcon className="mr-1" icon={solid("user")} />
                       {data?.me.name}
                     </div>
+                    <div className="px-2 mt-1 text-sm w-fit">
+                      <FontAwesomeIcon
+                        className="mr-1"
+                        icon={solid("envelope")}
+                      />
+                      {data?.me.email}
+                    </div>
                     <div className="px-2 mt-1 mb-2 text-sm w-fit">
+                      <FontAwesomeIcon
+                        className="mr-1"
+                        icon={solid("children")}
+                      />
                       <span>
-                        <FontAwesomeIcon
-                          className="mr-1"
-                          icon={solid("envelope")}
-                        />
-                        {data?.me.email}
+                        {new Date().getFullYear() -
+                          new Date(data.me.birth).getFullYear()}
+                        세{" "}
                       </span>
+                      <span>{SEX_PARSE_OBJ[data?.me.sex]}</span>
+                    </div>
+                    <div className="px-2 py-1 border-y flex flex-col items-start">
+                      <Link to={"/update-user/"}>
+                        <button>정보 변경</button>
+                      </Link>
+                      <Link to={"/my-agendas/"}>
+                        <button>작성 글 보기</button>
+                      </Link>
+                      <Link to={"/my-comments/"}>
+                        <button>작성 댓글 보기</button>
+                      </Link>
+                      <Link to={"/voted-op/"}>
+                        <button>투표한 의견 보기</button>
+                      </Link>
                     </div>
                     <button
                       className=" py-2 bg-gray-100 font-bold text-blue-900 hover:text-red-800 transition-colors"
@@ -129,8 +160,8 @@ export const Header = () => {
           )}
         </div>
       </header>
-      <div className="bg-blue-900 flex justify-center">
-        <div className="py-1 px-2 lg:max-w-2xl max-w-md w-full  text-white">
+      <div className="bg-naviation flex justify-center">
+        <div className="py-1 px-2 lg:max-w-2xl max-w-md w-full text-gray-200">
           <Link
             onClick={resetDefaultPage}
             to={`/${Category.Humor.toLowerCase()}`}

@@ -16,6 +16,10 @@ import {
   GetCommentsByAgendaInput,
   GetCommentsByAgendaOutput,
 } from './dtos/get-comments-by-agenda.dto';
+import {
+  GetMyCommentsInput,
+  GetMyCommentsOutput,
+} from './dtos/get-my-comments';
 import { Comments } from './entities/comments.entity';
 
 @Injectable()
@@ -101,6 +105,32 @@ export class CommentsService {
     } catch (e) {
       console.log(e);
       return { ok: false, error: "Couldn't get comments" };
+    }
+  }
+
+  async getMyComments(
+    user: User,
+    { page }: GetMyCommentsInput,
+  ): Promise<GetMyCommentsOutput> {
+    try {
+      const [myComments, count] = await this.comments.findAndCount({
+        relations: ['agenda'],
+        where: { author: { id: user.id } },
+        order: { createdAt: 'DESC' },
+        take: PAGINATION_UNIT_COMMENTS,
+        skip: PAGINATION_UNIT_COMMENTS * (page - 1),
+      });
+
+      if (!myComments) {
+        return { ok: false, error: 'myComments is undefined.' };
+      }
+      return {
+        ok: true,
+        comments: myComments,
+        totalPage: Math.ceil(count / PAGINATION_UNIT_COMMENTS),
+      };
+    } catch {
+      return { ok: false, error: "Couldn't get my comments." };
     }
   }
 

@@ -2,30 +2,38 @@ interface IPercentageBarFrop {
   voteCntA: number;
   voteCntB: number;
   width: number;
-  height: number;
+  isBig: boolean;
 }
 
 export const PercentageBar: React.FC<IPercentageBarFrop> = ({
   voteCntA,
   voteCntB,
   width,
-  height,
+  isBig,
 }) => {
   const totalCnt = voteCntA + voteCntB;
-
+  const nodeRatio = isBig ? 4 : 6.5;
+  const calHeight = width * (nodeRatio / 100);
   return (
     <div
       className="per-bar-base"
-      style={{ maxWidth: width - height / 2, height }}
+      style={{ maxWidth: width, height: calHeight }}
     >
       <div
         className="per-Bar-l"
         style={{
-          width: `${totalCnt > 0 ? (voteCntA / totalCnt) * 100 + "" : `50`}%`,
-          minWidth: height,
+          width: `${
+            totalCnt > 0
+              ? nodeRatio + (100 - nodeRatio) * (voteCntA / totalCnt) + ""
+              : nodeRatio + (100 - nodeRatio) * 0.5 + ""
+          }%`,
+          minWidth: calHeight,
         }}
       >
-        <div className="per-bar-node" style={{ width: height }}></div>
+        <div
+          className="per-bar-node relative"
+          style={{ width: calHeight }}
+        ></div>
       </div>
     </div>
   );

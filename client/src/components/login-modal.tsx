@@ -1,10 +1,8 @@
 import {
   ApolloQueryResult,
-  gql,
   OperationVariables,
   useMutation,
 } from "@apollo/client";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import Modal from "react-modal";
 import { Link } from "react-router-dom";

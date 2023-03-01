@@ -54,12 +54,14 @@ export class Agenda extends CommonEntity {
 
   @Field((type) => [Comments])
   @OneToMany(() => Comments, (comments) => comments.agenda, {
-    cascade: ['remove', 'soft-remove'],
+    onDelete: 'CASCADE',
+    cascade: ['insert', 'update', 'remove', 'soft-remove'],
   })
   comments: Comments[];
 
   @Field((type) => [Opinion])
   @OneToMany(() => Opinion, (opinion) => opinion.agenda, {
+    onDelete: 'CASCADE',
     cascade: ['insert', 'update', 'remove', 'soft-remove'],
   })
   opinions: Opinion[];

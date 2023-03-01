@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { cache } from "../../apollo";
 import {
   CREATE_AGENDA,
-  GET_AGENDA_BY_CATEGORY,
+  SEARCH_AGENDA_BY_CATEGORY,
 } from "../../queries/query-agedas";
 import { CATEGORY_PARSE_OBJ } from "../../constants";
 import { AGENDA_FRAGMENT } from "../../queries/fragments";
@@ -17,7 +17,7 @@ import {
   CreateAgendaMutation,
   CreateAgendaMutationVariables,
 } from "../../gql/graphql";
-
+import { Helmet } from "react-helmet-async";
 interface ICreateAgenda {
   category: Category;
 }
@@ -52,7 +52,7 @@ export const CreateAgenda: React.FC<ICreateAgenda> = ({ category }) => {
       if (ok && newAgenda) {
         cache.updateQuery(
           {
-            query: GET_AGENDA_BY_CATEGORY,
+            query: SEARCH_AGENDA_BY_CATEGORY,
             variables: { input: { page: 1, category } },
           },
           (data) => {
@@ -86,6 +86,9 @@ export const CreateAgenda: React.FC<ICreateAgenda> = ({ category }) => {
   };
   return (
     <div className="flex min-h-screen h-full justify-center bg-slate-300 ">
+      <Helmet>
+        <title>{CATEGORY_PARSE_OBJ[category]} - SnackVote</title>
+      </Helmet>
       <div>
         <div className="my-10 pl-11 font-bold text-4xl text-gray-800">
           {CATEGORY_PARSE_OBJ[category]}

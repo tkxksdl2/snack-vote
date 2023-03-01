@@ -6,6 +6,7 @@ import { ApolloProvider } from "@apollo/client";
 import { client } from "./apollo";
 import { BrowserRouter } from "react-router-dom";
 import "./styles/styles.css";
+import { HelmetProvider } from "react-helmet-async";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -14,7 +15,9 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <ApolloProvider client={client}>
-        <App />
+        <HelmetProvider>
+          <App />
+        </HelmetProvider>
       </ApolloProvider>
     </BrowserRouter>
   </React.StrictMode>
