@@ -29,6 +29,7 @@ import { AppLoggerMiddleware } from './applogger/app-logger-middleware';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.test',
+      ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',

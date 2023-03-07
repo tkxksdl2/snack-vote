@@ -23,6 +23,7 @@
     "@types/react-modal": "^3.13.1",
     "babel-plugin-macros": "^3.1.0",
     "chart.js": "^4.2.1",
+    "cross-env": "^7.0.3",
     "date-and-time": "^2.4.2",
     "graphql": "^16.6.0",
     "react": "^18.2.0",
@@ -38,8 +39,10 @@
   },
   "scripts": {
     "tailwind:watch": "npx tailwindcss -i ./src/styles/tailwind.css -o ./src/styles/styles.css --watch",
-    "start": "set PORT=4000 && react-scripts start",
+    "tailwind:build": "npx tailwindcss -i ./src/styles/tailwind.css -o ./src/styles/styles.css",
+    "start": "react-scripts start",
     "build": "react-scripts build",
+    "prebuild": "cross-env NODE_ENV=production npm run tailwind:build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "codegen": "graphql-codegen --config codegen.ts --verbose"

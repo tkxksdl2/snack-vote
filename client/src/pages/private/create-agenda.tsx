@@ -37,7 +37,7 @@ export const CreateAgenda: React.FC<ICreateAgenda> = ({ category }) => {
     getValues,
     formState: { errors },
   } = useForm<IForm>();
-  const [createAgenda, { loading, data }] = useMutation<
+  const [createAgenda, { loading, data, error }] = useMutation<
     CreateAgendaMutation,
     CreateAgendaMutationVariables
   >(CREATE_AGENDA, {
@@ -58,9 +58,11 @@ export const CreateAgenda: React.FC<ICreateAgenda> = ({ category }) => {
           (data) => {
             return {
               ...data,
-              getAgendasByCategory: {
+              searchAgendasByCategory: {
                 ...data.getAgendasByCategory,
-                agendas: [newAgenda].concat(data.getAgendasByCategory.agendas),
+                agendas: [newAgenda].concat(
+                  data.searchAgendasByCategory.agendas
+                ),
               },
             };
           }
@@ -70,6 +72,7 @@ export const CreateAgenda: React.FC<ICreateAgenda> = ({ category }) => {
       } else if (error) console.log(error);
     },
   });
+  console.log(error);
   const onValid = () => {
     const { subject, opinionA, opinionB } = getValues();
     createAgenda({

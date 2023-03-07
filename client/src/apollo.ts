@@ -33,7 +33,10 @@ const REFRESH = gql`
 `;
 
 const httpLink = createHttpLink({
-  uri: "http://localhost:3000/graphql",
+  uri:
+    process.env.NODE_ENV === "production"
+      ? window.location.origin + "/server"
+      : "http://localhost:4000/graphql",
 });
 
 const linkOnError = onError(({ graphQLErrors, operation, forward }) => {

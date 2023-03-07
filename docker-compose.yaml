@@ -1,0 +1,77 @@
+services:
+  snack-vote-db:
+    image: mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - snack-vote-network
+    volumes:
+      - mysql-volume:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/MYSQL_ROOT_PASSWORD
+      MYSQL_DATABASE: snackvote
+      MYSQL_USER_FILE: /run/secrets/DB_USERNAME
+      MYSQL_PASSWORD_FILE: /run/secrets/DB_PASSWORD
+    secrets:
+      - MYSQL_ROOT_PASSWORD
+      - DB_USERNAME
+      - DB_PASSWORD
+
+  snack-vote-backend:
+    image: whalebro/snack-vote-backend:updated
+    container_name: snack-vote-backend
+    ports:
+      - "4000:4000"
+    networks:
+      - snack-vote-network
+    environment:
+      DB_HOST: snack-vote-db
+      DB_PORT: 3306
+      DB_NAME: snackvote
+      DB_USERNAME_FILE: /run/secrets/DB_USERNAME
+      DB_PASSWORD_FILE: /run/secrets/DB_PASSWORD
+      JWT_PRIVATE_KEY_FILE: /run/secrets/JWT_PRIVATE_KEY
+      JWT_PRIVATE_KEY_EXP_TIME_FILE: /run/secrets/JWT_PRIVATE_KEY_EXP_TIME
+      JWT_REFRESH_KEY_FILE: /run/secrets/JWT_REFRESH_KEY
+      JWT_REFRESH_KEY_EXP_TIME_FILE: /run/secrets/JWT_REFRESH_KEY_EXP_TIME
+    secrets:
+      - DB_USERNAME
+      - DB_PASSWORD
+      - JWT_PRIVATE_KEY
+      - JWT_PRIVATE_KEY_EXP_TIME
+      - JWT_REFRESH_KEY
+      - JWT_REFRESH_KEY_EXP_TIME
+
+  snack-vote-frontend:
+    image: whalebro/snack-vote-frontend
+    networks:
+      - snack-vote-network
+    ports:
+      - "80:80"
+    links:
+      - snack-vote-backend
+    depends_on:
+      - snack-vote-db
+      - snack-vote-backend
+
+networks:
+  snack-vote-network:
+
+volumes:
+  mysql-volume:
+
+secrets:
+  MYSQL_ROOT_PASSWORD:
+    file: ./MYSQL_ROOT_PASSWORD.txt
+  DB_USERNAME:
+    file: ./DB_USERNAME.txt
+  DB_PASSWORD:
+    file: ./DB_PASSWORD.txt
+  JWT_REFRESH_KEY:
+    file: ./JWT_REFRESH_KEY.txt
+  JWT_REFRESH_KEY_EXP_TIME:
+    file: ./JWT_REFRESH_KEY_EXP_TIME.txt
+  JWT_PRIVATE_KEY:
+    file: ./JWT_PRIVATE_KEY.txt
+  JWT_PRIVATE_KEY_EXP_TIME:
+    file: ./JWT_PRIVATE_KEY_EXP_TIME.txt
