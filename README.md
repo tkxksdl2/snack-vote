@@ -28,8 +28,7 @@ ERD
 
 Architecture
 
-<img src="images\snackvote-architecture
-.png"  width="700" height="370">
+<img src="images\snackvote-architecture.png"  width="700" height="370">
 
 ---
 
