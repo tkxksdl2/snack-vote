@@ -7,7 +7,7 @@ import { Repository } from 'typeorm';
 import {
   CreateCommentsInput,
   CreateCommentsOutput,
-} from './dtos/create-comments.dtos';
+} from './dtos/create-comments.dto';
 import {
   DeleteCommentsInput,
   DeleteCommentsOutput,
@@ -50,7 +50,7 @@ export class CommentsService {
         return { ok, error };
       }
       if (bundleId) {
-        const bundleExists = this.findCommentsById(bundleId);
+        const bundleExists = await this.findCommentsById(bundleId);
         if (!bundleExists) {
           return { ok: false, error: 'No parents comment with bundleId' };
         }
@@ -102,8 +102,7 @@ export class CommentsService {
         comments,
         totalPage: Math.ceil(count / PAGINATION_UNIT_COMMENTS),
       };
-    } catch (e) {
-      console.log(e);
+    } catch {
       return { ok: false, error: "Couldn't get comments" };
     }
   }
@@ -120,10 +119,6 @@ export class CommentsService {
         take: PAGINATION_UNIT_COMMENTS,
         skip: PAGINATION_UNIT_COMMENTS * (page - 1),
       });
-
-      if (!myComments) {
-        return { ok: false, error: 'myComments is undefined.' };
-      }
       return {
         ok: true,
         comments: myComments,

@@ -6,7 +6,7 @@ import { CommentsService } from './comments.service';
 import {
   CreateCommentsInput,
   CreateCommentsOutput,
-} from './dtos/create-comments.dtos';
+} from './dtos/create-comments.dto';
 import {
   DeleteCommentsInput,
   DeleteCommentsOutput,

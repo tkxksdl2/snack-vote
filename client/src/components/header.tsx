@@ -62,8 +62,8 @@ export const Header = () => {
   return (
     <React.Fragment>
       <header className="pt-3 pb-1 lg:px-5 px-1 bg-header border border-b-2 flex justify-center">
-        <div className="lg:max-w-4xl max-w-screen-md w-full px-2 flex justify-between text-gray-700">
-          <div className="lg:w-auto w-60">
+        <div className="lg:max-w-4xl max-w-screen-md w-full px-2 flex justify-between items-center text-gray-700">
+          <div className="lg:w-auto w-60 flex lg:flex-row lg:items-end flex-col">
             <Link to="/">
               <span
                 className="font-bold text-4xl"
@@ -72,7 +72,7 @@ export const Header = () => {
                 <span className=" text-orange-700">Snack</span> Vote
               </span>
             </Link>
-            <span className="mx-10 text-sm font-bold text-gray-500">
+            <span className="lg:mx-10 mx-4 text-sm font-bold text-gray-500">
               간식처럼 간단한 투표
             </span>
           </div>
@@ -80,7 +80,7 @@ export const Header = () => {
             <React.Fragment>
               <button
                 onClick={openModal}
-                className=" bg-zinc-400 px-3 rounded-2xl font-bold text-white"
+                className="bg-zinc-400 px-3 lg:h-full h-14 rounded-2xl font-bold text-white"
               >
                 로그인
               </button>

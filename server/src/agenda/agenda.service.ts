@@ -123,11 +123,10 @@ export class AgendaService {
         skip: PAGINATION_UNIT * (page - 1),
         order: { createdAt: 'DESC' },
       });
-      const totalPage = Math.ceil(count / PAGINATION_UNIT);
       return {
         ok: true,
         agendas,
-        totalPage,
+        totalPage: Math.ceil(count / PAGINATION_UNIT),
       };
     } catch (e) {
       return { ok: false, error: 'Internal Server Error' };
@@ -163,14 +162,12 @@ export class AgendaService {
         where: { category, ...(query && { subject: ILike(`%${query}%`) }) },
         order: { createdAt: 'DESC' },
       });
-      const totalPage = Math.ceil(count / PAGINATION_UNIT);
       return {
         ok: true,
         agendas,
-        totalPage,
+        totalPage: Math.ceil(count / PAGINATION_UNIT),
       };
-    } catch (e) {
-      console.log(e);
+    } catch {
       return { ok: false, error: 'Internal Server Error' };
     }
   }
@@ -234,10 +231,10 @@ export class AgendaService {
         relations: ['votedUser'],
       });
       if (!votedOp || !otherOp) {
-        return { ok: false, error: 'Opinion with input id dose not exist' };
+        return { ok: false, error: 'Opinion with input id does not exist' };
       }
       if (otherOp.votedUserId.includes(authUser.id)) {
-        return { ok: false, error: 'You alreay voted other Opinion' };
+        return { ok: false, error: '이미 다른 의견에 투표했습니다.' };
       }
       if (votedOp.votedUserId.includes(authUser.id)) {
         votedOp.votedUser = votedOp.votedUser.filter((user) => {
@@ -247,7 +244,7 @@ export class AgendaService {
         this.opinions.save(votedOp);
         return {
           ok: true,
-          message: 'Successfully unvoted opinion',
+          message: '투표를 취소했습니다.',
           voteCount: votedOp.votedUserCount,
           voteId,
         };
@@ -257,7 +254,7 @@ export class AgendaService {
       this.opinions.save(votedOp);
       return {
         ok: true,
-        message: 'Successfully voted opinion',
+        message: '투표에 성공했습니다.',
         voteCount: votedOp.votedUserCount,
         voteId,
       };

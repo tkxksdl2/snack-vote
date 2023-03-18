@@ -43,7 +43,7 @@ export class UserResolver {
     @AuthUser() user: User,
     @Args('input') deleteUserInput: DeleteUserInput,
   ): Promise<DeleteUserOutput> {
-    return this.userService.deleteUser(user, deleteUserInput);
+    return this.userService.deleteUser(user.id, user.role, deleteUserInput);
   }
 
   @Role(['Any'])
@@ -52,6 +52,6 @@ export class UserResolver {
     @AuthUser() user: User,
     @Args('input') updateUserInput: UpdateUserInput,
   ): Promise<UpdateUserOutput> {
-    return this.userService.updateUser(user, updateUserInput);
+    return this.userService.updateUser(user.id, user.role, updateUserInput);
   }
 }

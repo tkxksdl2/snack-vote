@@ -107,11 +107,10 @@ export const CreateComments: React.FC<ICreateComments> = ({
 
   const onsubmit = () => {
     if (!isLoggedIn) {
-      alert("댓글을 달려면 로그인해주세요");
+      alert("먼저 로그인해주세요");
       return;
-    }
-    const { content } = getValues();
-    if (!loading) {
+    } else if (!loading) {
+      const { content } = getValues();
       createComments({
         variables: {
           input: {
@@ -124,7 +123,9 @@ export const CreateComments: React.FC<ICreateComments> = ({
     }
   };
   const onInvalid = () => {
-    if (errors.content?.message) alert(errors.content?.message);
+    if (!isLoggedIn) {
+      alert("먼저 로그인해주세요");
+    } else if (errors.content?.message) alert(errors.content?.message);
     else alert("알수없는 에러입니다.");
   };
 

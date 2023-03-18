@@ -45,7 +45,7 @@ yarn-error.log
 /packages/graphql
 /benchmarks/memory
 build/config\.gypi
-
+/server/coverage
 *.pem
 *.txt
 docker-secrets

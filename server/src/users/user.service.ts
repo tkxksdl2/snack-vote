@@ -55,7 +55,8 @@ export class UserService {
   }
 
   async updateUser(
-    me: User,
+    meId: number,
+    meRole: UserRole,
     { inputId, email, password, name, profileImage }: UpdateUserInput,
   ): Promise<UpdateUserOutput> {
     try {
@@ -63,16 +64,22 @@ export class UserService {
       if (!ok) {
         return { ok, error };
       }
-      if (me.role !== UserRole.Admin && me.id !== user.id) {
+      if (meRole !== UserRole.Admin && meId !== user.id) {
         return {
           ok: false,
           error: "You don't have permission to update this user",
         };
       }
-      if (email) user.email = email;
+      // if (email) user.email = email;
+      // if (profileImage) user.profileImage = profileImage;
+      if (name && user.name !== name) {
+        const nameExist = await this.users.findOne({ where: { name } });
+        if (nameExist) {
+          return { ok: false, error: 'Input Name already exist' };
+        }
+        user.name = name;
+      }
       if (password) user.password = password;
-      if (name) user.name = name;
-      if (profileImage) user.profileImage = profileImage;
       await this.users.save(user);
       return {
         ok: true,
@@ -83,7 +90,8 @@ export class UserService {
   }
 
   async deleteUser(
-    me: User,
+    meId: number,
+    meRole: UserRole,
     { id }: DeleteUserInput,
   ): Promise<DeleteUserOutput> {
     try {
@@ -94,7 +102,7 @@ export class UserService {
       if (!user) {
         return { ok: false, error: 'User does not exist.' };
       }
-      if (me.role !== UserRole.Admin && user.id !== me.id) {
+      if (meRole !== UserRole.Admin && user.id !== meId) {
         return {
           ok: false,
           error: "You don't have permission to delete this User",
@@ -103,7 +111,6 @@ export class UserService {
       await this.users.softRemove(user);
       return { ok: true };
     } catch (e) {
-      console.log(e);
       return { ok: false, error: "Couldn't delete User" };
     }
   }
@@ -161,8 +168,6 @@ export class UserService {
     refreshTokenId,
   }: RefreshInput): Promise<RefreshOutput> {
     try {
-      const expiredPayload =
-        this.jwtService.verifyExpiredAccessToken(accessToken);
       const refreshToken = await this.refreshTokens.findOneOrFail({
         where: { id: refreshTokenId },
         relations: ['user'],
@@ -174,6 +179,8 @@ export class UserService {
         refreshToken.refreshToken,
         TokenType.Refresh,
       );
+      const expiredPayload =
+        this.jwtService.verifyExpiredAccessToken(accessToken);
       if (
         typeof expiredPayload === 'object' &&
         typeof refreshTokenPayload === 'object' &&
@@ -190,7 +197,6 @@ export class UserService {
       );
       return { ok: true, newAccessToken };
     } catch (e) {
-      console.log(e);
       return {
         ok: false,
         error: "Couldn't refresh token. Refresh Token could be expired.",
