@@ -30,10 +30,13 @@ export const AGENDA_DETAIL_FRAGMENT = gql`
       id
       opinionText
       votedUserCount
-      votedUser {
+      vote {
         id
-        birth
-        sex
+        user {
+          id
+          sex
+          birth
+        }
       }
     }
   }

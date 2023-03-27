@@ -10,17 +10,16 @@ import {
   BeforeUpdate,
   Column,
   Entity,
-  ManyToMany,
   OneToMany,
   OneToOne,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from '@nestjs/common';
-import { Opinion } from 'src/agenda/entities/opinion.entity';
 import { Agenda } from 'src/agenda/entities/agenda.entity';
 import { IsDate, IsEmail, IsEnum, IsString } from 'class-validator';
 import { RefreshTokens } from './refresh-tokens.entity';
 import { Comments } from '../../comments/entities/comments.entity';
+import { Vote } from 'src/agenda/entities/vote.entity';
 
 export enum UserRole {
   Client = 'Client',
@@ -84,9 +83,9 @@ export class User extends CommonEntity {
   })
   agendas?: [Agenda];
 
-  @Field((type) => [Opinion])
-  @ManyToMany(() => Opinion, { nullable: true, cascade: ['soft-remove'] })
-  votedOp?: Opinion[];
+  @Field((type) => [Vote])
+  @OneToMany(() => Vote, (vote) => vote.user)
+  vote: Vote[];
 
   @Field((type) => [Comments])
   @OneToMany(() => Comments, (comments) => comments.author, {

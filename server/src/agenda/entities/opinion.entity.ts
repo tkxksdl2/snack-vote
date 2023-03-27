@@ -1,16 +1,9 @@
 import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { IsBoolean, IsString } from 'class-validator';
 import { CommonEntity } from 'src/common/entities/common.entity';
-import { User } from 'src/users/entities/user.entity';
-import {
-  Column,
-  Entity,
-  JoinTable,
-  ManyToMany,
-  ManyToOne,
-  RelationId,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { Agenda } from './agenda.entity';
+import { Vote } from './vote.entity';
 
 @InputType('OpinionInputtype', { isAbstract: true })
 @ObjectType()
@@ -30,14 +23,9 @@ export class Opinion extends CommonEntity {
   @ManyToOne(() => Agenda, (agenda) => agenda.opinions)
   agenda: Agenda;
 
-  @Field((type) => [User], { nullable: true })
-  @ManyToMany(() => User, { nullable: true, onDelete: 'CASCADE' })
-  @JoinTable()
-  votedUser?: User[];
-
-  @Field((type) => [Number], { nullable: true })
-  @RelationId('votedUser')
-  votedUserId?: number[];
+  @Field((type) => [Vote])
+  @OneToMany(() => Vote, (vote) => vote.opinion)
+  vote: Vote[];
 
   @Column({ default: 0 })
   @Field((type) => Int, { defaultValue: 0 })

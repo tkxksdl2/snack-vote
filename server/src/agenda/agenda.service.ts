@@ -38,6 +38,7 @@ import {
 import { Opinion } from './entities/opinion.entity';
 import { AgendaRepository } from './agenda.repository';
 import { GetMosteVotedAgendasOutput } from './dtos/get-most-voted-agendas';
+import { Vote } from './entities/vote.entity';
 
 @Injectable()
 export class AgendaService {
@@ -45,6 +46,8 @@ export class AgendaService {
     private readonly agendas: AgendaRepository,
     @InjectRepository(Opinion)
     private readonly opinions: Repository<Opinion>,
+    @InjectRepository(Vote)
+    private readonly votes: Repository<Vote>,
   ) {}
 
   async findAgendaById({
@@ -53,7 +56,12 @@ export class AgendaService {
     try {
       const agenda = await this.agendas.findOne({
         where: { id },
-        relations: ['author', 'opinions', 'opinions.votedUser'],
+        relations: [
+          'author',
+          'opinions',
+          'opinions.vote',
+          'opinions.vote.user',
+        ],
       });
       if (!agenda) {
         return { ok: false, error: 'Agenda with input id is not found' };
@@ -201,7 +209,7 @@ export class AgendaService {
     try {
       const [opinions, count] = await this.opinions.findAndCount({
         where: {
-          votedUser: { id: user.id },
+          vote: { user: { id: user.id } },
         },
         relations: ['agenda'],
         take: PAGINATION_UNIT,
@@ -219,44 +227,51 @@ export class AgendaService {
 
   async voteOrUnvote(
     authUser: User,
-    { otherOpinionId, voteId }: VoteOrUnvoteInput,
+    { otherOpinionId, voteOpinionId }: VoteOrUnvoteInput,
   ): Promise<VoteOrUnvoteOutput> {
     try {
       const votedOp = await this.opinions.findOne({
-        where: { id: voteId },
-        relations: ['votedUser'],
+        where: { id: voteOpinionId },
       });
-      const otherOp = await this.opinions.findOne({
-        where: { id: otherOpinionId },
-        relations: ['votedUser'],
-      });
-      if (!votedOp || !otherOp) {
-        return { ok: false, error: 'Opinion with input id does not exist' };
+      if (!votedOp) {
+        return { ok: false, error: '투표하려는 의견은 존재하지 않습니다.' };
       }
-      if (otherOp.votedUserId.includes(authUser.id)) {
+      const selectedOpVote = await this.votes.findOne({
+        where: { user: { id: authUser.id }, opinion: { id: voteOpinionId } },
+      });
+      const otherOpVote = await this.votes.findOne({
+        where: { user: { id: authUser.id }, opinion: { id: otherOpinionId } },
+      });
+      if (otherOpVote) {
         return { ok: false, error: '이미 다른 의견에 투표했습니다.' };
       }
-      if (votedOp.votedUserId.includes(authUser.id)) {
-        votedOp.votedUser = votedOp.votedUser.filter((user) => {
-          return user.id !== authUser.id;
-        });
+      if (selectedOpVote) {
+        const voteId = selectedOpVote.id;
+        await this.votes.remove(selectedOpVote);
         votedOp.votedUserCount -= 1;
-        this.opinions.save(votedOp);
+        await this.opinions.save(votedOp);
         return {
           ok: true,
           message: '투표를 취소했습니다.',
           voteCount: votedOp.votedUserCount,
+          opinionId: voteOpinionId,
           voteId,
+          resultType: 'unvote',
         };
       }
-      votedOp.votedUser.push(authUser);
       votedOp.votedUserCount += 1;
-      this.opinions.save(votedOp);
+      await this.opinions.save(votedOp);
+      const newVote = await this.votes.save(
+        this.votes.create({ user: authUser, opinion: votedOp }),
+      );
       return {
         ok: true,
         message: '투표에 성공했습니다.',
         voteCount: votedOp.votedUserCount,
-        voteId,
+        opinionId: voteOpinionId,
+        voteId: newVote.id,
+        opinionType: votedOp.opinionType,
+        resultType: 'vote',
       };
     } catch {
       return { ok: false, error: "Couldn't vote to opinion" };

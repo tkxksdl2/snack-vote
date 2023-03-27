@@ -37,7 +37,10 @@ export const VOTE_OR_UNVOTE = gql`
       error
       voteCount
       message
+      opinionId
       voteId
+      resultType
+      opinionType
     }
   }
 `;

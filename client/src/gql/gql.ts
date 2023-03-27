@@ -15,9 +15,9 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
 const documents = {
     "\n  mutation refresh($input: RefreshInput!) {\n    refresh(input: $input) {\n      ok\n      error\n      newAccessToken\n    }\n  }\n": types.RefreshDocument,
     "\n          fragment Me on User {\n            name\n          }\n        ": types.MeFragmentDoc,
-    "\n              fragment votedOp on Opinion {\n                votedUserCount\n                votedUser {\n                  id\n                }\n              }\n            ": types.VotedOpFragmentDoc,
+    "\n              fragment votedOp on Opinion {\n                votedUserCount\n                vote {\n                  user {\n                    id\n                    sex\n                    birth\n                  }\n                }\n              }\n            ": types.VotedOpFragmentDoc,
     "\n  fragment AgendaParts on Agenda {\n    id\n    subject\n    seriousness\n    category\n    createdAt\n    opinions {\n      id\n      opinionText\n      votedUserCount\n    }\n    author {\n      id\n      name\n    }\n  }\n": types.AgendaPartsFragmentDoc,
-    "\n  fragment AgendaDetailParts on Agenda {\n    id\n    subject\n    seriousness\n    category\n    createdAt\n    opinions {\n      id\n      opinionText\n      votedUserCount\n      votedUser {\n        id\n        birth\n        sex\n      }\n    }\n  }\n": types.AgendaDetailPartsFragmentDoc,
+    "\n  fragment AgendaDetailParts on Agenda {\n    id\n    subject\n    seriousness\n    category\n    createdAt\n    opinions {\n      id\n      opinionText\n      votedUserCount\n      vote {\n        id\n        user {\n          id\n          sex\n          birth\n        }\n      }\n    }\n  }\n": types.AgendaDetailPartsFragmentDoc,
     "\n  fragment CommentParts on Comments {\n    id\n    bundleId\n    content\n    createdAt\n    deletedAt\n    depth\n    author {\n      id\n      name\n    }\n  }\n": types.CommentPartsFragmentDoc,
     "\n  query getAllAgendas($input: GetAllAgendasInput!) {\n    getAllAgendas(input: $input) {\n      ok\n      error\n      totalPage\n      agendas {\n        ...AgendaParts\n      }\n    }\n  }\n  \n": types.GetAllAgendasDocument,
     "\n  query searchAgendasByCategory($input: SearchAgendasByCategoryInput!) {\n    searchAgendasByCategory(input: $input) {\n      ok\n      error\n      totalPage\n      agendas {\n        ...AgendaParts\n      }\n    }\n  }\n  \n": types.SearchAgendasByCategoryDocument,
@@ -27,7 +27,7 @@ const documents = {
     "\n  query getMyAgendas($input: GetMyAgendasInput!) {\n    getMyAgendas(input: $input) {\n      ok\n      error\n      totalPage\n      agendas {\n        ...AgendaParts\n      }\n    }\n  }\n  \n": types.GetMyAgendasDocument,
     "\n  query getVotedOpinions($input: GetVotedOpinionsInput!) {\n    getVotedOpinions(input: $input) {\n      ok\n      error\n      totalPage\n      opinions {\n        id\n        opinionText\n        votedUserCount\n        agenda {\n          id\n          subject\n          createdAt\n        }\n      }\n    }\n  }\n": types.GetVotedOpinionsDocument,
     "\n  query getAgendaAndComments(\n    $commentsInput: GetCommentsByAgendaInput!\n    $agendaInput: FindAgendaByIdInput!\n  ) {\n    getCommentsByAgenda(input: $commentsInput) {\n      ok\n      error\n      totalPage\n      comments {\n        ...CommentParts\n      }\n    }\n    findAgendaById(input: $agendaInput) {\n      ok\n      error\n      agenda {\n        ...AgendaDetailParts\n        author {\n          id\n          name\n        }\n      }\n    }\n  }\n  \n  \n": types.GetAgendaAndCommentsDocument,
-    "\n  mutation voteOrUnvote($input: VoteOrUnvoteInput!) {\n    voteOrUnvote(input: $input) {\n      ok\n      error\n      voteCount\n      message\n      voteId\n    }\n  }\n": types.VoteOrUnvoteDocument,
+    "\n  mutation voteOrUnvote($input: VoteOrUnvoteInput!) {\n    voteOrUnvote(input: $input) {\n      ok\n      error\n      voteCount\n      message\n      opinionId\n      voteId\n      resultType\n      opinionType\n    }\n  }\n": types.VoteOrUnvoteDocument,
     "\n  mutation createComments($input: CreateCommentsInput!) {\n    createComments(input: $input) {\n      ok\n      error\n      comments {\n        ...CommentParts\n      }\n    }\n  }\n  \n": types.CreateCommentsDocument,
     "\n  query getMyComments($input: GetMyCommentsInput!) {\n    getMyComments(input: $input) {\n      ok\n      error\n      totalPage\n      comments {\n        createdAt\n        content\n        author {\n          id\n        }\n        agenda {\n          id\n          subject\n        }\n      }\n    }\n  }\n": types.GetMyCommentsDocument,
     "\n  mutation deleteComments($input: DeleteCommentsInput!) {\n    deleteComments(input: $input) {\n      ok\n      error\n    }\n  }\n": types.DeleteCommentsDocument,
@@ -62,7 +62,7 @@ export function graphql(source: "\n          fragment Me on User {\n            
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n              fragment votedOp on Opinion {\n                votedUserCount\n                votedUser {\n                  id\n                }\n              }\n            "): (typeof documents)["\n              fragment votedOp on Opinion {\n                votedUserCount\n                votedUser {\n                  id\n                }\n              }\n            "];
+export function graphql(source: "\n              fragment votedOp on Opinion {\n                votedUserCount\n                vote {\n                  user {\n                    id\n                    sex\n                    birth\n                  }\n                }\n              }\n            "): (typeof documents)["\n              fragment votedOp on Opinion {\n                votedUserCount\n                vote {\n                  user {\n                    id\n                    sex\n                    birth\n                  }\n                }\n              }\n            "];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -70,7 +70,7 @@ export function graphql(source: "\n  fragment AgendaParts on Agenda {\n    id\n 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  fragment AgendaDetailParts on Agenda {\n    id\n    subject\n    seriousness\n    category\n    createdAt\n    opinions {\n      id\n      opinionText\n      votedUserCount\n      votedUser {\n        id\n        birth\n        sex\n      }\n    }\n  }\n"): (typeof documents)["\n  fragment AgendaDetailParts on Agenda {\n    id\n    subject\n    seriousness\n    category\n    createdAt\n    opinions {\n      id\n      opinionText\n      votedUserCount\n      votedUser {\n        id\n        birth\n        sex\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  fragment AgendaDetailParts on Agenda {\n    id\n    subject\n    seriousness\n    category\n    createdAt\n    opinions {\n      id\n      opinionText\n      votedUserCount\n      vote {\n        id\n        user {\n          id\n          sex\n          birth\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  fragment AgendaDetailParts on Agenda {\n    id\n    subject\n    seriousness\n    category\n    createdAt\n    opinions {\n      id\n      opinionText\n      votedUserCount\n      vote {\n        id\n        user {\n          id\n          sex\n          birth\n        }\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -110,7 +110,7 @@ export function graphql(source: "\n  query getAgendaAndComments(\n    $commentsI
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation voteOrUnvote($input: VoteOrUnvoteInput!) {\n    voteOrUnvote(input: $input) {\n      ok\n      error\n      voteCount\n      message\n      voteId\n    }\n  }\n"): (typeof documents)["\n  mutation voteOrUnvote($input: VoteOrUnvoteInput!) {\n    voteOrUnvote(input: $input) {\n      ok\n      error\n      voteCount\n      message\n      voteId\n    }\n  }\n"];
+export function graphql(source: "\n  mutation voteOrUnvote($input: VoteOrUnvoteInput!) {\n    voteOrUnvote(input: $input) {\n      ok\n      error\n      voteCount\n      message\n      opinionId\n      voteId\n      resultType\n      opinionType\n    }\n  }\n"): (typeof documents)["\n  mutation voteOrUnvote($input: VoteOrUnvoteInput!) {\n    voteOrUnvote(input: $input) {\n      ok\n      error\n      voteCount\n      message\n      opinionId\n      voteId\n      resultType\n      opinionType\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

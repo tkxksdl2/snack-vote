@@ -16,6 +16,7 @@ import { CommentsModule } from './comments/comments.module';
 import { Comments } from './comments/entities/comments.entity';
 import { UploadModule } from './upload/upload.module';
 import { AppLoggerMiddleware } from './applogger/app-logger-middleware';
+import { Vote } from './agenda/entities/vote.entity';
 
 @Module({
   imports: [
@@ -39,7 +40,7 @@ import { AppLoggerMiddleware } from './applogger/app-logger-middleware';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       synchronize: true,
-      entities: [User, Agenda, Opinion, RefreshTokens, Comments],
+      entities: [User, Agenda, Opinion, Vote, RefreshTokens, Comments],
     }),
     JwtModule.forRoot({
       accessTokenKey: process.env.JWT_PRIVATE_KEY,

@@ -50,11 +50,13 @@ export const AgendaDetail = () => {
     voteAHasMe: false,
     voteBHasMe: false,
   });
+
   const subjectRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   useEffect(() => {
     subjectRef.current?.scrollIntoView({ behavior: "auto", block: "center" });
   }, [location]);
+
   const { id } = useParams() as TAgendaParams;
   const isLoggedIn = useReactiveVar(isLoggedInVar);
   const { data: meData } = useMe();
@@ -77,20 +79,20 @@ export const AgendaDetail = () => {
     data?.getCommentsByAgenda.comments
   );
 
-  if (agenda?.opinions[0].votedUser) {
+  if (agenda?.opinions[0]) {
     let has = false;
-    for (const user of agenda?.opinions[0].votedUser) {
-      if (user.id === meData?.me.id) has = true;
+    for (const vote of agenda?.opinions[0].vote) {
+      if (vote.user.id === meData?.me.id) has = true;
     }
     if (has && voteState.voteAHasMe === false)
       setVoteState({ ...voteState, voteAHasMe: true });
     else if (!has && voteState.voteAHasMe === true)
       setVoteState({ ...voteState, voteAHasMe: false });
   }
-  if (agenda?.opinions[1].votedUser) {
+  if (agenda?.opinions[1].vote) {
     let has = false;
-    for (const user of agenda?.opinions[1].votedUser) {
-      if (user.id === meData?.me.id) has = true;
+    for (const vote of agenda?.opinions[1].vote) {
+      if (vote.user.id === meData?.me.id) has = true;
     }
     if (has && voteState.voteBHasMe === false)
       setVoteState({ ...voteState, voteBHasMe: true });
@@ -107,45 +109,44 @@ export const AgendaDetail = () => {
     VoteOrUnvoteMutationVariables
   >(VOTE_OR_UNVOTE, {
     onCompleted: (data) => {
-      const { ok, error, message, voteCount, voteId } = data.voteOrUnvote;
-      if (ok && message) {
-        cache.updateFragment(
-          {
-            id: `Opinion:${voteId}`,
-            fragment: gql`
-              fragment votedOp on Opinion {
-                votedUserCount
-                votedUser {
-                  id
-                }
+      const {
+        ok,
+        error,
+        message,
+        voteCount,
+        voteId,
+        opinionId,
+        resultType,
+        opinionType,
+      } = data.voteOrUnvote;
+      if (ok) {
+        cache.modify({
+          id: `Opinion:${opinionId}`,
+          fields: {
+            votedUserCount(_) {
+              return voteCount;
+            },
+            vote(votes) {
+              let newVotes = [...votes];
+              if (resultType === "vote") {
+                newVotes.push({
+                  __typename: "Vote",
+                  id: voteId,
+                  user: {
+                    __typename: "User",
+                    id: meData?.me.id,
+                    sex: meData?.me.sex,
+                    birth: meData?.me.birth,
+                  },
+                });
+              } else {
+                newVotes = newVotes.filter((v) => v.id !== voteId);
               }
-            `,
+              return newVotes;
+            },
           },
-          (data) => {
-            let nextVotedUser = data.votedUser;
-            let nextVotedUserCount = data.votedUserCount;
-            if (message.split(" ")[1] === "voted") {
-              nextVotedUser = [
-                ...nextVotedUser,
-                {
-                  __typename: "User",
-                  id: meData?.me.id,
-                },
-              ];
-              nextVotedUserCount++;
-            } else {
-              nextVotedUser = nextVotedUser.filter(
-                (v: any) => v.id !== meData?.me.id
-              );
-              nextVotedUserCount--;
-            }
-            return {
-              ...data,
-              votedUser: nextVotedUser,
-              votedUserCount: nextVotedUserCount,
-            };
-          }
-        );
+        });
+
         alert(message);
       } else if (error) {
         alert(error);
@@ -156,7 +157,7 @@ export const AgendaDetail = () => {
     voteOrUnvote({
       variables: {
         input: {
-          voteId,
+          voteOpinionId: voteId,
           otherOpinionId,
         },
       },
@@ -373,7 +374,7 @@ export const AgendaDetail = () => {
             </div>
           )}
           {typeof showChart === "number" &&
-            agenda?.opinions[showChart].votedUser && (
+            agenda?.opinions[showChart].vote && (
               <div className="bg-orange-100 rounded-xl transition-all">
                 <div className="ml-5 text-base text-gray-500 flex justify-between">
                   <span>
@@ -385,7 +386,9 @@ export const AgendaDetail = () => {
                   </span>
                 </div>
                 <AgendaChart
-                  votedUser={agenda?.opinions[showChart].votedUser}
+                  votedUser={agenda?.opinions[showChart].vote.map(
+                    (v) => v.user
+                  )}
                 />
               </div>
             )}
