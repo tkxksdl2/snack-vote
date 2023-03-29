@@ -17,6 +17,7 @@ import { Comments } from './comments/entities/comments.entity';
 import { UploadModule } from './upload/upload.module';
 import { AppLoggerMiddleware } from './applogger/app-logger-middleware';
 import { Vote } from './agenda/entities/vote.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { Vote } from './agenda/entities/vote.entity';
       envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.test',
       ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,

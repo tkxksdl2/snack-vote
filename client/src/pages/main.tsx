@@ -8,22 +8,22 @@ import { getFragmentData } from "../gql";
 import {
   AgendaPartsFragment,
   Category,
-  GetMostVotedAgendasQuery,
-  GetMostVotedAgendasQueryVariables,
+  GetMostVotedAgendasValueQuery,
+  GetMostVotedAgendasValueQueryVariables,
 } from "../gql/graphql";
 import { resetDefaultPage } from "../hooks/reset-default-page";
 import { Helmet } from "react-helmet-async";
-import { GET_MOST_VOTED_AGENDAS } from "../queries/query-agedas";
+import { GET_MOST_VOTED_AGENDAS_VALUE } from "../queries/query-agedas";
 
 export const Main = () => {
   const { data } = useQuery<
-    GetMostVotedAgendasQuery,
-    GetMostVotedAgendasQueryVariables
-  >(GET_MOST_VOTED_AGENDAS);
+    GetMostVotedAgendasValueQuery,
+    GetMostVotedAgendasValueQueryVariables
+  >(GET_MOST_VOTED_AGENDAS_VALUE);
   resetDefaultPage();
   const agendas = getFragmentData<AgendaPartsFragment>(
     AGENDA_FRAGMENT,
-    data?.getMostVotedAgendas.agendas
+    data?.getMostVotedAgendasValue
   );
   return (
     <div className="flex min-h-screen h-full justify-center bg-slate-300 ">

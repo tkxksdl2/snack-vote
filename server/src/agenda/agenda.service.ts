@@ -1,8 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PAGINATION_UNIT } from 'src/common/common.constants';
+import {
+  MAINPAGE_AGENDAS_UNIT,
+  PAGINATION_UNIT,
+} from 'src/common/common.constants';
 import { User, UserRole } from 'src/users/entities/user.entity';
-import { ILike, In, Repository } from 'typeorm';
+import { ILike, In, Not, Repository } from 'typeorm';
 import {
   CreateAgendaInput,
   CreateAgendaOutput,
@@ -39,9 +42,11 @@ import { Opinion } from './entities/opinion.entity';
 import { AgendaRepository } from './agenda.repository';
 import { GetMosteVotedAgendasOutput } from './dtos/get-most-voted-agendas';
 import { Vote } from './entities/vote.entity';
+import { Agenda } from './entities/agenda.entity';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
-export class AgendaService {
+export class AgendaService implements OnModuleInit {
   constructor(
     private readonly agendas: AgendaRepository,
     @InjectRepository(Opinion)
@@ -49,6 +54,24 @@ export class AgendaService {
     @InjectRepository(Vote)
     private readonly votes: Repository<Vote>,
   ) {}
+
+  private mostVotedAgendas: Agenda[];
+
+  async onModuleInit() {
+    await this.setMostVotedAgendas();
+  }
+
+  @Cron('*/30 * * * *')
+  async setMostVotedAgendas() {
+    const result = await this.getMostVotedAgendas();
+    if (result.ok) {
+      this.mostVotedAgendas = result.agendas;
+    }
+  }
+
+  getMostVotedAgendasValue() {
+    return this.mostVotedAgendas;
+  }
 
   async findAgendaById({
     id,
@@ -143,13 +166,25 @@ export class AgendaService {
 
   async getMostVotedAgendas(): Promise<GetMosteVotedAgendasOutput> {
     try {
-      const ids = await this.agendas.getMostVotedAgendaId();
-      const agendas = await this.agendas.find({
-        relations: ['opinions', 'author'],
+      const ids = await this.agendas.findAgendaIdByRecentVoteCount();
+      let agendas = await this.agendas.find({
+        relations: ['opinions', 'author', 'opinions.vote'],
         where: { id: In(ids) },
       });
       if (!agendas) {
         return { ok: false, error: "Couldn't get agendas" };
+      }
+      if (agendas.length < MAINPAGE_AGENDAS_UNIT) {
+        const sub = await this.agendas.find({
+          relations: ['opinions', 'author', 'opinions.vote'],
+          where: { id: Not(In(ids)) },
+          take: MAINPAGE_AGENDAS_UNIT - agendas.length,
+          order: { createdAt: 'DESC' },
+        });
+        if (!sub) {
+          return { ok: false, error: "Couldn't get agendas" };
+        }
+        agendas = agendas.concat(sub);
       }
       return { ok: true, agendas };
     } catch {

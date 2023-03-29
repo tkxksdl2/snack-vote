@@ -59,7 +59,7 @@ export const CreateAgenda: React.FC<ICreateAgenda> = ({ category }) => {
             return {
               ...data,
               searchAgendasByCategory: {
-                ...data.getAgendasByCategory,
+                ...data.searchAgendasByCategory,
                 agendas: [newAgenda].concat(
                   data.searchAgendasByCategory.agendas
                 ),
@@ -72,7 +72,6 @@ export const CreateAgenda: React.FC<ICreateAgenda> = ({ category }) => {
       } else if (error) console.log(error);
     },
   });
-  console.log(error);
   const onValid = () => {
     const { subject, opinionA, opinionB } = getValues();
     createAgenda({

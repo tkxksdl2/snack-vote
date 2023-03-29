@@ -29,14 +29,10 @@ export const SEARCH_AGENDA_BY_CATEGORY = gql`
   ${AGENDA_FRAGMENT}
 `;
 
-export const GET_MOST_VOTED_AGENDAS = gql`
-  query getMostVotedAgendas {
-    getMostVotedAgendas {
-      ok
-      error
-      agendas {
-        ...AgendaParts
-      }
+export const GET_MOST_VOTED_AGENDAS_VALUE = gql`
+  query getMostVotedAgendasValue {
+    getMostVotedAgendasValue {
+      ...AgendaParts
     }
   }
   ${AGENDA_FRAGMENT}

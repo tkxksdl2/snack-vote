@@ -79,26 +79,28 @@ export const AgendaDetail = () => {
     data?.getCommentsByAgenda.comments
   );
 
-  if (agenda?.opinions[0]) {
-    let has = false;
-    for (const vote of agenda?.opinions[0].vote) {
-      if (vote.user.id === meData?.me.id) has = true;
+  useEffect(() => {
+    if (agenda?.opinions[0]) {
+      let has = false;
+      for (const vote of agenda?.opinions[0].vote) {
+        if (vote.user.id === meData?.me.id) has = true;
+      }
+      if (has && voteState.voteAHasMe === false)
+        setVoteState({ ...voteState, voteAHasMe: true });
+      else if (!has && voteState.voteAHasMe === true)
+        setVoteState({ ...voteState, voteAHasMe: false });
     }
-    if (has && voteState.voteAHasMe === false)
-      setVoteState({ ...voteState, voteAHasMe: true });
-    else if (!has && voteState.voteAHasMe === true)
-      setVoteState({ ...voteState, voteAHasMe: false });
-  }
-  if (agenda?.opinions[1].vote) {
-    let has = false;
-    for (const vote of agenda?.opinions[1].vote) {
-      if (vote.user.id === meData?.me.id) has = true;
+    if (agenda?.opinions[1].vote) {
+      let has = false;
+      for (const vote of agenda?.opinions[1].vote) {
+        if (vote.user.id === meData?.me.id) has = true;
+      }
+      if (has && voteState.voteBHasMe === false)
+        setVoteState({ ...voteState, voteBHasMe: true });
+      else if (!has && voteState.voteBHasMe === true)
+        setVoteState({ ...voteState, voteBHasMe: false });
     }
-    if (has && voteState.voteBHasMe === false)
-      setVoteState({ ...voteState, voteBHasMe: true });
-    else if (!has && voteState.voteBHasMe === true)
-      setVoteState({ ...voteState, voteBHasMe: false });
-  }
+  }, [agenda, meData]);
 
   const voteCntA = agenda ? agenda.opinions[0].votedUserCount : 0;
   const voteCntB = agenda ? agenda.opinions[1].votedUserCount : 0;
@@ -109,16 +111,8 @@ export const AgendaDetail = () => {
     VoteOrUnvoteMutationVariables
   >(VOTE_OR_UNVOTE, {
     onCompleted: (data) => {
-      const {
-        ok,
-        error,
-        message,
-        voteCount,
-        voteId,
-        opinionId,
-        resultType,
-        opinionType,
-      } = data.voteOrUnvote;
+      const { ok, error, message, voteCount, voteId, opinionId, resultType } =
+        data.voteOrUnvote;
       if (ok) {
         cache.modify({
           id: `Opinion:${opinionId}`,
@@ -140,13 +134,16 @@ export const AgendaDetail = () => {
                   },
                 });
               } else {
-                newVotes = newVotes.filter((v) => v.id !== voteId);
+                newVotes = newVotes.filter((v) => {
+                  if (v.id) return v.id !== voteId;
+                  else if (v.__ref) return v.__ref !== `Vote:${voteId}`;
+                });
+                setVoteState({ voteAHasMe: false, voteBHasMe: false });
               }
               return newVotes;
             },
           },
         });
-
         alert(message);
       } else if (error) {
         alert(error);

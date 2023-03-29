@@ -18,7 +18,7 @@ export const AgendaFrame: React.FC<IAgendaFrameProp> = ({ agenda }) => {
     <React.Fragment>
       <div className="px-1 text-xs text-gray-500 flex justify-between">
         <span>{parseDate(agenda.createdAt)}</span>
-        <span>by {agenda.author?.name}</span>
+        <span>by {agenda.author?.name || "unknown"}</span>
       </div>
       <div
         className="lg:w-96 w-72 h-36 px-2 py-1 border border-neutral-400 rounded-md bg-white text-gray-700 

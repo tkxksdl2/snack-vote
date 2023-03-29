@@ -63,9 +63,9 @@ export class AgendaResolver {
     );
   }
 
-  @Query((returns) => GetMosteVotedAgendasOutput)
-  getMostVotedAgendas(): Promise<GetMosteVotedAgendasOutput> {
-    return this.agendaService.getMostVotedAgendas();
+  @Query((returns) => [Agenda])
+  getMostVotedAgendasValue(): Agenda[] {
+    return this.agendaService.getMostVotedAgendasValue();
   }
 
   @Role(['Any'])

@@ -15,13 +15,12 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
 const documents = {
     "\n  mutation refresh($input: RefreshInput!) {\n    refresh(input: $input) {\n      ok\n      error\n      newAccessToken\n    }\n  }\n": types.RefreshDocument,
     "\n          fragment Me on User {\n            name\n          }\n        ": types.MeFragmentDoc,
-    "\n              fragment votedOp on Opinion {\n                votedUserCount\n                vote {\n                  user {\n                    id\n                    sex\n                    birth\n                  }\n                }\n              }\n            ": types.VotedOpFragmentDoc,
     "\n  fragment AgendaParts on Agenda {\n    id\n    subject\n    seriousness\n    category\n    createdAt\n    opinions {\n      id\n      opinionText\n      votedUserCount\n    }\n    author {\n      id\n      name\n    }\n  }\n": types.AgendaPartsFragmentDoc,
     "\n  fragment AgendaDetailParts on Agenda {\n    id\n    subject\n    seriousness\n    category\n    createdAt\n    opinions {\n      id\n      opinionText\n      votedUserCount\n      vote {\n        id\n        user {\n          id\n          sex\n          birth\n        }\n      }\n    }\n  }\n": types.AgendaDetailPartsFragmentDoc,
     "\n  fragment CommentParts on Comments {\n    id\n    bundleId\n    content\n    createdAt\n    deletedAt\n    depth\n    author {\n      id\n      name\n    }\n  }\n": types.CommentPartsFragmentDoc,
     "\n  query getAllAgendas($input: GetAllAgendasInput!) {\n    getAllAgendas(input: $input) {\n      ok\n      error\n      totalPage\n      agendas {\n        ...AgendaParts\n      }\n    }\n  }\n  \n": types.GetAllAgendasDocument,
     "\n  query searchAgendasByCategory($input: SearchAgendasByCategoryInput!) {\n    searchAgendasByCategory(input: $input) {\n      ok\n      error\n      totalPage\n      agendas {\n        ...AgendaParts\n      }\n    }\n  }\n  \n": types.SearchAgendasByCategoryDocument,
-    "\n  query getMostVotedAgendas {\n    getMostVotedAgendas {\n      ok\n      error\n      agendas {\n        ...AgendaParts\n      }\n    }\n  }\n  \n": types.GetMostVotedAgendasDocument,
+    "\n  query getMostVotedAgendasValue {\n    getMostVotedAgendasValue {\n      ...AgendaParts\n    }\n  }\n  \n": types.GetMostVotedAgendasValueDocument,
     "\n  mutation createAgenda($input: CreateAgendaInput!) {\n    createAgenda(input: $input) {\n      ok\n      error\n      result {\n        ...AgendaParts\n      }\n    }\n  }\n  \n": types.CreateAgendaDocument,
     "\n  mutation deleteAgenda($input: DeleteAgendaInput!) {\n    deleteAgenda(input: $input) {\n      ok\n      error\n    }\n  }\n": types.DeleteAgendaDocument,
     "\n  query getMyAgendas($input: GetMyAgendasInput!) {\n    getMyAgendas(input: $input) {\n      ok\n      error\n      totalPage\n      agendas {\n        ...AgendaParts\n      }\n    }\n  }\n  \n": types.GetMyAgendasDocument,
@@ -62,10 +61,6 @@ export function graphql(source: "\n          fragment Me on User {\n            
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n              fragment votedOp on Opinion {\n                votedUserCount\n                vote {\n                  user {\n                    id\n                    sex\n                    birth\n                  }\n                }\n              }\n            "): (typeof documents)["\n              fragment votedOp on Opinion {\n                votedUserCount\n                vote {\n                  user {\n                    id\n                    sex\n                    birth\n                  }\n                }\n              }\n            "];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
 export function graphql(source: "\n  fragment AgendaParts on Agenda {\n    id\n    subject\n    seriousness\n    category\n    createdAt\n    opinions {\n      id\n      opinionText\n      votedUserCount\n    }\n    author {\n      id\n      name\n    }\n  }\n"): (typeof documents)["\n  fragment AgendaParts on Agenda {\n    id\n    subject\n    seriousness\n    category\n    createdAt\n    opinions {\n      id\n      opinionText\n      votedUserCount\n    }\n    author {\n      id\n      name\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -86,7 +81,7 @@ export function graphql(source: "\n  query searchAgendasByCategory($input: Searc
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query getMostVotedAgendas {\n    getMostVotedAgendas {\n      ok\n      error\n      agendas {\n        ...AgendaParts\n      }\n    }\n  }\n  \n"): (typeof documents)["\n  query getMostVotedAgendas {\n    getMostVotedAgendas {\n      ok\n      error\n      agendas {\n        ...AgendaParts\n      }\n    }\n  }\n  \n"];
+export function graphql(source: "\n  query getMostVotedAgendasValue {\n    getMostVotedAgendasValue {\n      ...AgendaParts\n    }\n  }\n  \n"): (typeof documents)["\n  query getMostVotedAgendasValue {\n    getMostVotedAgendasValue {\n      ...AgendaParts\n    }\n  }\n  \n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

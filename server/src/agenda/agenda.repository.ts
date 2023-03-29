@@ -1,23 +1,42 @@
 import { Injectable } from '@nestjs/common';
+import { MAINPAGE_AGENDAS_UNIT } from 'src/common/common.constants';
 import { DataSource, Repository } from 'typeorm';
 import { Agenda } from './entities/agenda.entity';
-
-const query = `
-    select a.id
-    from agenda a join opinion b on a.id = b.agendaId
-    where  datediff(now(), a.createdAt) < 10 and a.deletedAt is null
-    group by a.id
-    order by sum(b.votedUserCount) desc
-    limit 6;
-`;
 
 @Injectable()
 export class AgendaRepository extends Repository<Agenda> {
   constructor(private dataSource: DataSource) {
     super(Agenda, dataSource.createEntityManager());
   }
-  async getMostVotedAgendaId(): Promise<number[]> {
-    const result = await this.query(query);
-    return result.map((v: { id: number }) => v.id);
+  async findAgendaIdByRecentVoteCount(): Promise<number[]> {
+    try {
+      const qb = this.dataSource.createQueryBuilder(Agenda, 'agenda');
+      const result = await qb
+        .select(['sub.agendaId as id', 'COUNT(*) as recentCnt', 'sub.voteId'])
+        .from(
+          qb
+            .subQuery()
+            .from(Agenda, 'agenda')
+            .innerJoin('agenda.opinions', 'opinion')
+            .innerJoin('opinion.vote', 'vote')
+            .select([
+              'agenda.id as agendaId',
+              'vote.id as voteId',
+              'vote.createdAt',
+            ])
+            .orderBy('vote.createdAt', 'DESC')
+            .limit(1000)
+            .getQuery(),
+          'sub',
+        )
+        .groupBy('agendaId')
+        .orderBy('recentCnt', 'DESC')
+        .limit(MAINPAGE_AGENDAS_UNIT)
+        .getRawMany();
+      if (result) return result.map((v) => v.id);
+      else return undefined;
+    } catch (e) {
+      return undefined;
+    }
   }
 }
