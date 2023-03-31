@@ -12,7 +12,7 @@ export class AgendaRepository extends Repository<Agenda> {
     try {
       const qb = this.dataSource.createQueryBuilder(Agenda, 'agenda');
       const result = await qb
-        .select(['sub.agendaId as id', 'COUNT(*) as recentCnt', 'sub.voteId'])
+        .select(['sub.agendaId as id', 'COUNT(*) as recentCnt'])
         .from(
           qb
             .subQuery()
@@ -29,14 +29,15 @@ export class AgendaRepository extends Repository<Agenda> {
             .getQuery(),
           'sub',
         )
-        .groupBy('agendaId')
+        .groupBy('sub.agendaId')
         .orderBy('recentCnt', 'DESC')
         .limit(MAINPAGE_AGENDAS_UNIT)
         .getRawMany();
       if (result) return result.map((v) => v.id);
-      else return undefined;
+      else return [];
     } catch (e) {
-      return undefined;
+      console.log(e);
+      return [];
     }
   }
 }

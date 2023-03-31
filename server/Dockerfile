@@ -1,11 +1,11 @@
 FROM node:18
 
+RUN echo 'version 1.1 fixed'
+
 WORKDIR /app
 COPY . .
 RUN npm install
 ENV NODE_ENV production
-
-RUN echo 'sfdsdfdfdd'
 
 COPY add-file-env.sh /usr/local/bin/add-file-env.sh
 RUN chmod +x /usr/local/bin/add-file-env.sh

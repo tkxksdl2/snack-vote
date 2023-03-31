@@ -22,7 +22,7 @@ services:
       - DB_PASSWORD
 
   snack-vote-backend:
-    image: whalebro/snack-vote-backend:updated
+    image: whalebro/snack-vote-backend:1.1fixed
     deploy:
       placement:
         constraints:
@@ -50,7 +50,7 @@ services:
       - JWT_REFRESH_KEY_EXP_TIME
 
   snack-vote-frontend:
-    image: whalebro/snack-vote-frontend:1
+    image: whalebro/snack-vote-frontend:1.1
     deploy:
       placement:
         constraints:

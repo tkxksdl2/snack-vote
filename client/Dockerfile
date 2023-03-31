@@ -1,4 +1,6 @@
 FROM node:18 AS build
+
+RUN echo 'version 1.1'
 WORKDIR /app
 COPY package* ./
 RUN npm install

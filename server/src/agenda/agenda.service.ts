@@ -58,12 +58,17 @@ export class AgendaService implements OnModuleInit {
   private mostVotedAgendas: Agenda[];
 
   async onModuleInit() {
-    await this.setMostVotedAgendas();
+    try {
+      await this.setMostVotedAgendas();
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   @Cron('*/30 * * * *')
   async setMostVotedAgendas() {
     const result = await this.getMostVotedAgendas();
+    console.log('renew most voted agendas');
     if (result.ok) {
       this.mostVotedAgendas = result.agendas;
     }
@@ -181,13 +186,11 @@ export class AgendaService implements OnModuleInit {
           take: MAINPAGE_AGENDAS_UNIT - agendas.length,
           order: { createdAt: 'DESC' },
         });
-        if (!sub) {
-          return { ok: false, error: "Couldn't get agendas" };
-        }
         agendas = agendas.concat(sub);
       }
       return { ok: true, agendas };
-    } catch {
+    } catch (e) {
+      console.log(e);
       return { ok: false, error: 'interal server error' };
     }
   }

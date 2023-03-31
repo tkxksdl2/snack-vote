@@ -23,6 +23,7 @@ import { ScheduleModule } from '@nestjs/schedule';
   imports: [
     GraphQLModule.forRoot({
       autoSchemaFile: true,
+      cache: 'bounded',
       driver: ApolloDriver,
       context: ({ req, extra }) => {
         return { token: req ? req.headers['x-jwt'] : extra.token };
