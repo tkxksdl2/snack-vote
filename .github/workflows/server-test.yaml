@@ -1,0 +1,16 @@
+name: Server Test
+on:
+  push:
+    - main
+    - vote
+jobs:
+  server-unit:
+    - uses: actions/checkout@v3
+    - uses: actions/cache@v3
+      id: npm-cache
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+    - run: cd server
+    - run: npm ci
+    - run: npm run test
