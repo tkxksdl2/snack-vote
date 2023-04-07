@@ -14,11 +14,11 @@ jobs:
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-      - name: install dependencies
+      - name: Install dependencies
         run: |
-        cd server
-        npm ci
+          cd server
+          npm ci
       - name: run unit test
         run: |
-        cd server
-        npm run test
+          cd server
+          npm run test
