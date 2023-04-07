@@ -1,16 +1,24 @@
 name: Server Test
 on:
   push:
-    - main
-    - vote
+    branches:
+      - main
+      - vote
 jobs:
   server-unit:
-    - uses: actions/checkout@v3
-    - uses: actions/cache@v3
-      id: npm-cache
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-    - run: cd server
-    - run: npm ci
-    - run: npm run test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      - name: install dependencies
+        run: |
+        cd server
+        npm ci
+      - name: run unit test
+        run: |
+        cd server
+        npm run test
