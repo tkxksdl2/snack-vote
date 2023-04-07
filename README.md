@@ -24,7 +24,7 @@ deploy - docker-stack, aws-EC2, Route53
 
 ERD
 
-<img src="images\ERD.png"  width="600" height="370">
+<img src="images\ERD.png"  width="500" height="550">
 
 Architecture
 
@@ -32,12 +32,14 @@ Architecture
 
 ---
 
+## update
+
+모델 및 인기 글 기능 개선
+
 ## Todo
 
-테스트 코드 작성
+테스트 코드 추가
 
 CI/CD 개선
 
 이미지 관련 기능 추가
-
-추천 기능 개선.
