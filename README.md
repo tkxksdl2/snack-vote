@@ -32,14 +32,14 @@ Architecture
 
 ---
 
-## update
+## updated
 
 모델 및 인기 글 기능 개선
+
+Github Actions 이용 CI/CD 개선
 
 ## Todo
 
 테스트 코드 추가
-
-CI/CD 개선
 
 이미지 관련 기능 추가
