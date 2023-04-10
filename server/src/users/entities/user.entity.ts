@@ -84,8 +84,8 @@ export class User extends CommonEntity {
   agendas?: [Agenda];
 
   @Field((type) => [Vote])
-  @OneToMany(() => Vote, (vote) => vote.user)
-  vote: Vote[];
+  @OneToMany(() => Vote, (vote) => vote.user, { nullable: true })
+  vote?: Vote[];
 
   @Field((type) => [Comments])
   @OneToMany(() => Comments, (comments) => comments.author, {
