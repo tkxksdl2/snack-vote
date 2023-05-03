@@ -11,5 +11,5 @@ export class LoginOutput extends CommonOutput {
   accessToken?: string;
 
   @Field((type) => Int, { nullable: true })
-  refreshTokenId?: number;
+  userId?: number;
 }

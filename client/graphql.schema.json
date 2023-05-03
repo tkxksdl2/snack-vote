@@ -1650,7 +1650,7 @@
             "deprecationReason": null
           },
           {
-            "name": "refreshTokenId",
+            "name": "userId",
             "description": null,
             "args": [],
             "type": {
@@ -2468,7 +2468,7 @@
             "deprecationReason": null
           },
           {
-            "name": "refreshTokenId",
+            "name": "userId",
             "description": null,
             "type": {
               "kind": "NON_NULL",

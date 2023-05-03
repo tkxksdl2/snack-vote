@@ -21,9 +21,7 @@ export class JwtService {
         expiresIn: this.options.accessTokenExpTime,
       });
     } else {
-      return jwt.sign(payload, this.options.refreshTokenKey, {
-        expiresIn: this.options.refreshTokenExpTime,
-      });
+      return jwt.sign(payload, this.options.refreshTokenKey);
     }
   }
 

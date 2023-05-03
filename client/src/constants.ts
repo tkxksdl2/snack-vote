@@ -1,5 +1,5 @@
 export const LOCAL_STARAGE_TOKEN = "LOCAL_STARAGE_TOKEN";
-export const LOCAL_STARAGE_REFRESH_ID = "REFRESH_ID";
+export const LOCAL_STARAGE_USER_ID = "USER_ID";
 export const CATEGORY_PARSE_OBJ = {
   Humor: "유머",
   Social: "사회",

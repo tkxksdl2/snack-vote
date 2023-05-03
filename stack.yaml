@@ -41,6 +41,8 @@ services:
       JWT_PRIVATE_KEY_EXP_TIME_FILE: /run/secrets/JWT_PRIVATE_KEY_EXP_TIME
       JWT_REFRESH_KEY_FILE: /run/secrets/JWT_REFRESH_KEY
       JWT_REFRESH_KEY_EXP_TIME_FILE: /run/secrets/JWT_REFRESH_KEY_EXP_TIME
+      REDIS_HOST_FILE: /run/secrets/REDIS_HOST
+      REDIS_PORT_FILE: /run/secrets/REDIS_PORT
     secrets:
       - DB_USERNAME
       - DB_PASSWORD
@@ -48,6 +50,8 @@ services:
       - JWT_PRIVATE_KEY_EXP_TIME
       - JWT_REFRESH_KEY
       - JWT_REFRESH_KEY_EXP_TIME
+      - REDIS_HOST
+      - REDIS_PORT
 
   snack-vote-frontend:
     image: whalebro/snack-vote-frontend:1.1
@@ -85,4 +89,8 @@ secrets:
   JWT_PRIVATE_KEY:
     external: true
   JWT_PRIVATE_KEY_EXP_TIME:
+    external: true
+  REDIS_HOST:
+    external: true
+  REDIS_PORT:
     external: true

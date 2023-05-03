@@ -6,8 +6,8 @@ import {
 import { useForm } from "react-hook-form";
 import Modal from "react-modal";
 import { Link } from "react-router-dom";
-import { accessTokenVar, isLoggedInVar, refreshTokenIdVar } from "../apollo";
-import { LOCAL_STARAGE_REFRESH_ID, LOCAL_STARAGE_TOKEN } from "../constants";
+import { accessTokenVar, isLoggedInVar, userIdvar } from "../apollo";
+import { LOCAL_STARAGE_USER_ID, LOCAL_STARAGE_TOKEN } from "../constants";
 import { LoginMutation, LoginMutationVariables, MeQuery } from "../gql/graphql";
 import { LOGIN } from "../queries/query-users";
 
@@ -53,13 +53,13 @@ export const LoginModal: React.FC<ILoginModalProps> = ({
   };
 
   const onCompleted = async (data: LoginMutation) => {
-    const { ok, error, accessToken, refreshTokenId } = data.login;
-    if (ok && accessToken && refreshTokenId) {
+    const { ok, error, accessToken, userId } = data.login;
+    if (ok && accessToken && userId) {
       localStorage.setItem(LOCAL_STARAGE_TOKEN, accessToken);
-      localStorage.setItem(LOCAL_STARAGE_REFRESH_ID, refreshTokenId + "");
+      localStorage.setItem(LOCAL_STARAGE_USER_ID, userId + "");
       isLoggedInVar(true);
       accessTokenVar(accessToken);
-      refreshTokenIdVar(refreshTokenId + "");
+      userIdvar(userId + "");
       await refetch();
       setIsOpen(false);
     } else {

@@ -3,9 +3,11 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { JwtService, TokenType } from 'src/jwt/jwt.service';
 import { expectCalledTimesAndWith } from 'test/hook/test-hook';
 import { Repository } from 'typeorm';
-import { RefreshTokens } from './entities/refresh-tokens.entity';
 import { Sex, User, UserRole } from './entities/user.entity';
 import { UserService } from './user.service';
+import { Cache } from 'cache-manager';
+import { REFRESH_TOKEN_EXP_TIME } from 'src/common/common.constants';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 const mockRepository = () => ({
   findOne: jest.fn(),
@@ -24,13 +26,17 @@ const mockJwtService = {
   verify: jest.fn(),
   verifyExpiredAccessToken: jest.fn(() => FAKE_TOKEN),
 };
+const mockCacheManager = {
+  set: jest.fn(),
+  get: jest.fn(),
+};
 
 type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 
 describe('UserService', () => {
   let service: UserService;
   let userRepository: MockRepository<User>;
-  let refreshTokenRepository: MockRepository<RefreshTokens>;
+  let cacheManager: Cache;
   let jwtService: JwtService;
   beforeAll(async () => {
     const module = await Test.createTestingModule({
@@ -42,8 +48,8 @@ describe('UserService', () => {
           useValue: mockRepository(),
         },
         {
-          provide: getRepositoryToken(RefreshTokens),
-          useValue: mockRepository(),
+          provide: CACHE_MANAGER,
+          useValue: mockCacheManager,
         },
         {
           provide: JwtService,
@@ -54,7 +60,7 @@ describe('UserService', () => {
     service = module.get<UserService>(UserService);
     jwtService = module.get<JwtService>(JwtService);
     userRepository = module.get(getRepositoryToken(User));
-    refreshTokenRepository = module.get(getRepositoryToken(RefreshTokens));
+    cacheManager = module.get<Cache>(CACHE_MANAGER);
   });
   afterEach(() => {
     jest.clearAllMocks();
@@ -101,6 +107,7 @@ describe('UserService', () => {
       expectCalledTimesAndWith(userRepository.findOne, 1, [
         {
           where: { email: createUserArgs.email },
+          withDeleted: true,
         },
       ]);
       expect(result).toMatchObject({
@@ -274,7 +281,6 @@ describe('UserService', () => {
     const EMAIL = 'test-email';
     const PASSWORD = 'test-pass';
     const ID = 1;
-    const REFRESH_ID = 2;
     it('should fail on user not found', async () => {
       userRepository.findOne.mockResolvedValue(undefined);
       const result = await service.login({ email: EMAIL, password: PASSWORD });
@@ -308,15 +314,6 @@ describe('UserService', () => {
         id: ID,
         comparePassword,
       });
-      jest
-        .spyOn(service, 'deleteRefreshToken')
-        .mockImplementationOnce(() => Promise.resolve());
-      refreshTokenRepository.create.mockReturnValue({
-        refreshToken: FAKE_REFRESH_TOKEN,
-        user: { id: ID },
-      });
-      refreshTokenRepository.save.mockResolvedValue({ id: REFRESH_ID });
-
       const result = await service.login({ email: EMAIL, password: PASSWORD });
       expectCalledTimesAndWith(
         jwtService.sign,
@@ -325,26 +322,15 @@ describe('UserService', () => {
         [{ id: ID }, TokenType.Refresh],
       );
       expect(jwtService.sign).toReturnWith(FAKE_TOKEN);
-      expectCalledTimesAndWith(service.deleteRefreshToken, 1, [ID]);
-      expectCalledTimesAndWith(refreshTokenRepository.create, 1, [
-        {
-          refreshToken: FAKE_REFRESH_TOKEN,
-          user: {
-            id: ID,
-            comparePassword,
-          },
-        },
-      ]);
-      expectCalledTimesAndWith(refreshTokenRepository.save, 1, [
-        {
-          refreshToken: FAKE_REFRESH_TOKEN,
-          user: { id: ID },
-        },
+      expectCalledTimesAndWith(cacheManager.set, 1, [
+        `user:${ID}:refresh-token`,
+        FAKE_REFRESH_TOKEN,
+        REFRESH_TOKEN_EXP_TIME,
       ]);
       expect(result).toMatchObject({
         ok: true,
         accessToken: FAKE_TOKEN,
-        refreshTokenId: REFRESH_ID,
+        userId: ID,
       });
     });
     it('should fail on exception', async () => {
@@ -353,42 +339,17 @@ describe('UserService', () => {
       expect(result).toMatchObject({ ok: false, error: "Couldn't get token" });
     });
   });
-  describe('deleteRefreshToken', () => {
-    const USER_ID = 1;
-    const REFRESH_TOKEN_ID = 2;
-    it('should delete refreshToken', async () => {
-      refreshTokenRepository.findOne.mockResolvedValue({
-        id: REFRESH_TOKEN_ID,
-      });
-      await service.deleteRefreshToken(USER_ID);
-      expectCalledTimesAndWith(refreshTokenRepository.findOne, 1, [
-        {
-          where: { user: { id: USER_ID } },
-        },
-      ]);
-      expectCalledTimesAndWith(refreshTokenRepository.delete, 1, [
-        {
-          id: REFRESH_TOKEN_ID,
-        },
-      ]);
-    });
-  });
   describe('refresh', () => {
     const ACCESS_TOKEN = 'fake-token';
-    const REFRESH_TOKEN_ID = 1;
-    const REFRESH_TOKEN = 'old-refrsh-token';
     const USER_ID = 3;
     it('should fail if refresh token not exist', async () => {
-      refreshTokenRepository.findOneOrFail.mockResolvedValue(undefined);
+      jest.spyOn(cacheManager, 'get').mockResolvedValueOnce(undefined);
       const result = await service.refresh({
         accessToken: ACCESS_TOKEN,
-        refreshTokenId: REFRESH_TOKEN_ID,
+        userId: USER_ID,
       });
-      expectCalledTimesAndWith(refreshTokenRepository.findOneOrFail, 1, [
-        {
-          where: { id: REFRESH_TOKEN_ID },
-          relations: ['user'],
-        },
+      expectCalledTimesAndWith(cacheManager.get, 1, [
+        `user:${USER_ID}:refresh-token`,
       ]);
       expect(result).toMatchObject({
         ok: false,
@@ -396,20 +357,17 @@ describe('UserService', () => {
       });
     });
     it('should fail if token not match', async () => {
-      refreshTokenRepository.findOneOrFail.mockResolvedValue({
-        refreshToken: REFRESH_TOKEN,
-        user: { id: USER_ID },
-      });
+      jest.spyOn(cacheManager, 'get').mockResolvedValueOnce(FAKE_REFRESH_TOKEN);
       jest.spyOn(jwtService, 'verify').mockReturnValueOnce({ id: USER_ID });
       jest
         .spyOn(jwtService, 'verifyExpiredAccessToken')
         .mockReturnValueOnce({ id: 4444 });
       const result = await service.refresh({
         accessToken: ACCESS_TOKEN,
-        refreshTokenId: REFRESH_TOKEN_ID,
+        userId: USER_ID,
       });
       expectCalledTimesAndWith(jwtService.verify, 1, [
-        REFRESH_TOKEN,
+        FAKE_REFRESH_TOKEN,
         TokenType.Refresh,
       ]);
       expectCalledTimesAndWith(jwtService.verifyExpiredAccessToken, 1, [
@@ -421,17 +379,14 @@ describe('UserService', () => {
       });
     });
     it('should refresh and return new access token', async () => {
-      refreshTokenRepository.findOneOrFail.mockResolvedValue({
-        refreshToken: REFRESH_TOKEN,
-        user: { id: USER_ID },
-      });
+      jest.spyOn(cacheManager, 'get').mockResolvedValueOnce(FAKE_REFRESH_TOKEN);
       jest.spyOn(jwtService, 'verify').mockReturnValueOnce({ id: USER_ID });
       jest
         .spyOn(jwtService, 'verifyExpiredAccessToken')
         .mockReturnValueOnce({ id: USER_ID });
       const result = await service.refresh({
         accessToken: ACCESS_TOKEN,
-        refreshTokenId: REFRESH_TOKEN_ID,
+        userId: USER_ID,
       });
       expectCalledTimesAndWith(jwtService.sign, 1, [
         { id: USER_ID },
@@ -440,10 +395,10 @@ describe('UserService', () => {
       expect(result).toMatchObject({ ok: true, newAccessToken: FAKE_TOKEN });
     });
     it('should fail on exception', async () => {
-      refreshTokenRepository.findOneOrFail.mockRejectedValue(new Error());
+      jest.spyOn(cacheManager, 'get').mockRejectedValue(new Error());
       const result = await service.refresh({
         accessToken: ACCESS_TOKEN,
-        refreshTokenId: REFRESH_TOKEN_ID,
+        userId: USER_ID,
       });
       expect(result).toMatchObject({
         ok: false,

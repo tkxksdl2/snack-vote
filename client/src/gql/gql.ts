@@ -31,7 +31,7 @@ const documents = {
     "\n  query getMyComments($input: GetMyCommentsInput!) {\n    getMyComments(input: $input) {\n      ok\n      error\n      totalPage\n      comments {\n        createdAt\n        content\n        author {\n          id\n        }\n        agenda {\n          id\n          subject\n        }\n      }\n    }\n  }\n": types.GetMyCommentsDocument,
     "\n  mutation deleteComments($input: DeleteCommentsInput!) {\n    deleteComments(input: $input) {\n      ok\n      error\n    }\n  }\n": types.DeleteCommentsDocument,
     "\n  query me {\n    me {\n      id\n      email\n      name\n      role\n      sex\n      birth\n    }\n  }\n": types.MeDocument,
-    "\n  mutation login($input: LoginInput!) {\n    login(input: $input) {\n      error\n      ok\n      accessToken\n      refreshTokenId\n    }\n  }\n": types.LoginDocument,
+    "\n  mutation login($input: LoginInput!) {\n    login(input: $input) {\n      error\n      ok\n      accessToken\n      userId\n    }\n  }\n": types.LoginDocument,
     "\n  mutation createUser($input: CreateUserInput!) {\n    createUser(input: $input) {\n      ok\n      error\n    }\n  }\n": types.CreateUserDocument,
     "\n  mutation updateUser($input: UpdateUserInput!) {\n    updateUser(input: $input) {\n      ok\n      error\n    }\n  }\n": types.UpdateUserDocument,
 };
@@ -125,7 +125,7 @@ export function graphql(source: "\n  query me {\n    me {\n      id\n      email
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation login($input: LoginInput!) {\n    login(input: $input) {\n      error\n      ok\n      accessToken\n      refreshTokenId\n    }\n  }\n"): (typeof documents)["\n  mutation login($input: LoginInput!) {\n    login(input: $input) {\n      error\n      ok\n      accessToken\n      refreshTokenId\n    }\n  }\n"];
+export function graphql(source: "\n  mutation login($input: LoginInput!) {\n    login(input: $input) {\n      error\n      ok\n      accessToken\n      userId\n    }\n  }\n"): (typeof documents)["\n  mutation login($input: LoginInput!) {\n    login(input: $input) {\n      error\n      ok\n      accessToken\n      userId\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

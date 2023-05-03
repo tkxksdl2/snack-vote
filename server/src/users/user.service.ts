@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommonOutput } from 'src/common/dtos/output.dto';
 import { JwtService, TokenType } from 'src/jwt/jwt.service';
@@ -6,20 +6,21 @@ import { Repository } from 'typeorm';
 import { CreateUserInput } from './dtos/create-user.dto';
 import { FindUserByIdOutput } from './dtos/find-one-by-id.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
-import { RefreshTokens } from './entities/refresh-tokens.entity';
 import { User, UserRole } from './entities/user.entity';
 import { RefreshInput, RefreshOutput } from './dtos/refresh.dto';
 import { DeleteUserInput, DeleteUserOutput } from './dtos/delete-user.dto';
 import { UpdateUserInput, UpdateUserOutput } from './dtos/update-user.dto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { REFRESH_TOKEN_EXP_TIME } from 'src/common/common.constants';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly users: Repository<User>,
-    @InjectRepository(RefreshTokens)
-    private readonly refreshTokens: Repository<RefreshTokens>,
-
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager: Cache,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -41,7 +42,10 @@ export class UserService {
     birth,
   }: CreateUserInput): Promise<CommonOutput> {
     try {
-      const exists = await this.users.findOne({ where: { email } });
+      const exists = await this.users.findOne({
+        where: { email },
+        withDeleted: true,
+      });
       if (exists) {
         return { ok: false, error: 'User with the email is already exists.' };
       }
@@ -49,7 +53,7 @@ export class UserService {
         this.users.create({ email, password, name, role, sex, birth }),
       );
       return { ok: true };
-    } catch {
+    } catch (e) {
       return { ok: false, error: "Couldn't create User" };
     }
   }
@@ -139,44 +143,28 @@ export class UserService {
         { id: user.id },
         TokenType.Refresh,
       );
-      await this.deleteRefreshToken(user.id);
-      const { id: refreshTokenId } = await this.refreshTokens.save(
-        this.refreshTokens.create({ refreshToken, user }),
+      await this.cacheManager.set(
+        `user:${user.id}:refresh-token`,
+        refreshToken,
+        REFRESH_TOKEN_EXP_TIME,
       );
-      // const hashedRefreshTokenId = await bcrypt.hash(
-      //   await bcrypt.genSalt(10),
-      //   refreshTokenId,
-      // );
-      return { ok: true, accessToken, refreshTokenId };
+      return { ok: true, accessToken, userId: user.id };
     } catch {
       return { ok: false, error: "Couldn't get token" };
     }
   }
 
-  async deleteRefreshToken(userId: number): Promise<void> {
-    const oldRefreshToken = await this.refreshTokens.findOne({
-      where: { user: { id: userId } },
-    });
-    if (oldRefreshToken) {
-      await this.refreshTokens.delete({ id: oldRefreshToken.id });
-    }
-  }
-
-  //**refresh access token if refresh token is valid */
-  async refresh({
-    accessToken,
-    refreshTokenId,
-  }: RefreshInput): Promise<RefreshOutput> {
+  /** refresh access token if refresh token is valid */
+  async refresh({ accessToken, userId }: RefreshInput): Promise<RefreshOutput> {
     try {
-      const refreshToken = await this.refreshTokens.findOneOrFail({
-        where: { id: refreshTokenId },
-        relations: ['user'],
-      });
+      const refreshToken = await this.cacheManager.get<string>(
+        `user:${userId}:refresh-token`,
+      );
       if (!refreshToken) {
         return { ok: false, error: 'Refresh Token does not exist' };
       }
       const refreshTokenPayload = this.jwtService.verify(
-        refreshToken.refreshToken,
+        refreshToken,
         TokenType.Refresh,
       );
       const expiredPayload =
@@ -192,7 +180,7 @@ export class UserService {
         };
       }
       const newAccessToken = this.jwtService.sign(
-        { id: refreshToken.user.id },
+        { id: userId },
         TokenType.Access,
       );
       return { ok: true, newAccessToken };

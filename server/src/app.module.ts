@@ -2,7 +2,6 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { join } from 'path';
 import { User } from './users/entities/user.entity';
 import { UserModule } from './users/user.module';
 import { JwtModule } from './jwt/jwt.module';
@@ -11,13 +10,15 @@ import { ConfigModule } from '@nestjs/config';
 import { Agenda } from './agenda/entities/agenda.entity';
 import { Opinion } from './agenda/entities/opinion.entity';
 import { AuthModule } from './auth/auth.module';
-import { RefreshTokens } from './users/entities/refresh-tokens.entity';
 import { CommentsModule } from './comments/comments.module';
 import { Comments } from './comments/entities/comments.entity';
 import { UploadModule } from './upload/upload.module';
 import { AppLoggerMiddleware } from './applogger/app-logger-middleware';
 import { Vote } from './agenda/entities/vote.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CacheModule } from '@nestjs/cache-manager';
+import type { RedisClientOptions } from 'redis';
+import { redisStore } from 'cache-manager-redis-yet';
 
 @Module({
   imports: [
@@ -35,6 +36,15 @@ import { ScheduleModule } from '@nestjs/schedule';
       ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
     ScheduleModule.forRoot(),
+    CacheModule.registerAsync<RedisClientOptions>({
+      useFactory: async () => ({
+        store: redisStore,
+        host: process.env.REDIS_HOST,
+        port: +process.env.REDIS_PORT,
+        ttl: 60000,
+      }),
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
@@ -43,7 +53,7 @@ import { ScheduleModule } from '@nestjs/schedule';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       synchronize: true,
-      entities: [User, Agenda, Opinion, Vote, RefreshTokens, Comments],
+      entities: [User, Agenda, Opinion, Vote, Comments],
     }),
     JwtModule.forRoot({
       accessTokenKey: process.env.JWT_PRIVATE_KEY,

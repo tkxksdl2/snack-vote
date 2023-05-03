@@ -36,7 +36,6 @@ import {
   VoteOrUnvoteOutput,
 } from './dtos/vote-or-unvote.dto';
 import { Agenda } from './entities/agenda.entity';
-import { GetMosteVotedAgendasOutput } from './dtos/get-most-voted-agendas';
 
 @Resolver((of) => Agenda)
 export class AgendaResolver {

@@ -62,13 +62,7 @@ describe('JwtService', () => {
     });
     it('should return refreshToken if tokenType Refresh', () => {
       const token = service.sign(FAKE_PAYLOAD, TokenType.Refresh);
-      expectCalledTimesAndWith(jwt.sign, 1, [
-        FAKE_PAYLOAD,
-        TEST_REFRESH_KEY,
-        {
-          expiresIn: TEST_REFRESH_KEY_EXP_TIME,
-        },
-      ]);
+      expectCalledTimesAndWith(jwt.sign, 1, [FAKE_PAYLOAD, TEST_REFRESH_KEY]);
       expect(token).toEqual(FAKE_REFRESH_TOKEN);
     });
   });

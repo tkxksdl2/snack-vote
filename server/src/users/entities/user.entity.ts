@@ -5,19 +5,11 @@ import {
   registerEnumType,
 } from '@nestjs/graphql';
 import { CommonEntity } from 'src/common/entities/common.entity';
-import {
-  BeforeInsert,
-  BeforeUpdate,
-  Column,
-  Entity,
-  OneToMany,
-  OneToOne,
-} from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from '@nestjs/common';
 import { Agenda } from 'src/agenda/entities/agenda.entity';
 import { IsDate, IsEmail, IsEnum, IsString } from 'class-validator';
-import { RefreshTokens } from './refresh-tokens.entity';
 import { Comments } from '../../comments/entities/comments.entity';
 import { Vote } from 'src/agenda/entities/vote.entity';
 
@@ -72,10 +64,6 @@ export class User extends CommonEntity {
   @Field((type) => Date)
   @IsDate()
   birth?: Date;
-
-  @Field((type) => RefreshTokens, { nullable: true })
-  @OneToOne(() => RefreshTokens, (ref) => ref.user, { nullable: true })
-  refreshToken?: RefreshTokens;
 
   @Field((type) => [Agenda])
   @OneToMany(() => Agenda, (agenda) => agenda.author, {

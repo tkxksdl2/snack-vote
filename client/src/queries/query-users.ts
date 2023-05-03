@@ -19,7 +19,7 @@ export const LOGIN = gql`
       error
       ok
       accessToken
-      refreshTokenId
+      userId
     }
   }
 `;

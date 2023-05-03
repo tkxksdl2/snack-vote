@@ -7,7 +7,7 @@ export class RefreshInput {
   accessToken: string;
 
   @Field((type) => Int)
-  refreshTokenId: number;
+  userId: number;
 }
 
 @ObjectType()

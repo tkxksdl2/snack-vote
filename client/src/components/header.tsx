@@ -3,16 +3,11 @@ import { solid } from "@fortawesome/fontawesome-svg-core/import.macro";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  accessTokenVar,
-  cache,
-  isLoggedInVar,
-  refreshTokenIdVar,
-} from "../apollo";
+import { accessTokenVar, cache, isLoggedInVar, userIdvar } from "../apollo";
 import {
   CATEGORY_PARSE_OBJ,
-  LOCAL_STARAGE_REFRESH_ID,
   LOCAL_STARAGE_TOKEN,
+  LOCAL_STARAGE_USER_ID,
   SEX_PARSE_OBJ,
 } from "../constants";
 import { Category } from "../gql/graphql";
@@ -52,9 +47,9 @@ export const Header = () => {
   const logout = () => {
     isLoggedInVar(false);
     localStorage.removeItem(LOCAL_STARAGE_TOKEN);
-    localStorage.removeItem(LOCAL_STARAGE_REFRESH_ID);
+    localStorage.removeItem(LOCAL_STARAGE_USER_ID);
     accessTokenVar(null);
-    refreshTokenIdVar(null);
+    userIdvar(null);
     cache.reset();
   };
   const isLoggedIn = useReactiveVar(isLoggedInVar);
