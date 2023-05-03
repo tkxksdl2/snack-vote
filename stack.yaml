@@ -22,7 +22,7 @@ services:
       - DB_PASSWORD
 
   snack-vote-backend:
-    image: whalebro/snack-vote-backend:1.1fixed
+    image: whalebro/snack-vote-backend:1.2
     deploy:
       placement:
         constraints:
@@ -54,7 +54,7 @@ services:
       - REDIS_PORT
 
   snack-vote-frontend:
-    image: whalebro/snack-vote-frontend:1.1
+    image: whalebro/snack-vote-frontend:1.2
     deploy:
       placement:
         constraints:

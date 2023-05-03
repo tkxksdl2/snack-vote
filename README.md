@@ -62,7 +62,7 @@ Architecture
 
   따라서 redis store를 cache module로 사용하여 refresh token을 관리하도록 변경했습니다.
 
-  access token은 유저가 보관하므로 기존처럼 토큰 자체 만료 시간을 사용하지만, refresh token은 redis의 TTL 기능을 이용해 자동적으로 지워지도록 했습니다. RDMS 사용이 줄었으므로 서버 부담도 덜고, 코드 자체도 간결해졌습니다.
+  access token은 유저가 보관하므로 기존처럼 토큰 자체 만료 시간을 사용하지만, refresh token은 redis의 TTL 기능을 이용해 자동적으로 지워지도록 했습니다. RDBMS 사용이 줄었으므로 서버 부담도 덜고, 코드 자체도 간결해졌습니다.
 
   <**추가 버그 수정**>
 
