@@ -22,7 +22,7 @@ services:
       - DB_PASSWORD
 
   snack-vote-backend:
-    image: whalebro/snack-vote-backend:1.2
+    image: whalebro/snack-vote-backend:1.21
     deploy:
       placement:
         constraints:
@@ -54,7 +54,7 @@ services:
       - REDIS_PORT
 
   snack-vote-frontend:
-    image: whalebro/snack-vote-frontend:1.2
+    image: whalebro/snack-vote-frontend:1.21
     deploy:
       placement:
         constraints:
@@ -63,8 +63,6 @@ services:
       - snack-vote-network
     ports:
       - "80:80"
-    links:
-      - snack-vote-backend
     depends_on:
       - snack-vote-db
       - snack-vote-backend
