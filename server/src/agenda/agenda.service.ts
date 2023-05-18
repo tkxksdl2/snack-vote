@@ -70,6 +70,7 @@ export class AgendaService implements OnModuleInit {
     const result = await this.getMostVotedAgendas();
     console.log('renew most voted agendas');
     if (result.ok) {
+      this.mostVotedAgendas = null;
       this.mostVotedAgendas = result.agendas;
     }
   }
