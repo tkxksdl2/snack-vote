@@ -22,7 +22,7 @@ services:
       - DB_PASSWORD
 
   snack-vote-backend:
-    image: whalebro/snack-vote-backend:1.21
+    image: whalebro/snack-vote-backend:1.22
     deploy:
       placement:
         constraints:
@@ -52,9 +52,14 @@ services:
       - JWT_REFRESH_KEY_EXP_TIME
       - REDIS_HOST
       - REDIS_PORT
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
 
   snack-vote-frontend:
-    image: whalebro/snack-vote-frontend:1.21
+    image: whalebro/snack-vote-frontend:1.22
     deploy:
       placement:
         constraints:
