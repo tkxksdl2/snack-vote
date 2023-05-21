@@ -1,0 +1,74 @@
+services:
+  snack-vote-backend:
+    image: whalebro/snack-vote-backend:1.23
+    deploy:
+      placement:
+        constraints:
+          - node.labels.type==back
+    ports:
+      - "4000:4000"
+    networks:
+      - snack-vote-network
+    environment:
+      DB_HOST_FILE: /run/secrets/DB_HOST
+      DB_PORT: 3306
+      DB_NAME: snackvote
+      DB_USERNAME_FILE: /run/secrets/DB_USERNAME
+      DB_PASSWORD_FILE: /run/secrets/DB_PASSWORD
+      JWT_PRIVATE_KEY_FILE: /run/secrets/JWT_PRIVATE_KEY
+      JWT_PRIVATE_KEY_EXP_TIME_FILE: /run/secrets/JWT_PRIVATE_KEY_EXP_TIME
+      JWT_REFRESH_KEY_FILE: /run/secrets/JWT_REFRESH_KEY
+      JWT_REFRESH_KEY_EXP_TIME_FILE: /run/secrets/JWT_REFRESH_KEY_EXP_TIME
+      REDIS_HOST_FILE: /run/secrets/REDIS_HOST
+      REDIS_PORT_FILE: /run/secrets/REDIS_PORT
+    secrets:
+      - DB_HOST
+      - DB_USERNAME
+      - DB_PASSWORD
+      - JWT_PRIVATE_KEY
+      - JWT_PRIVATE_KEY_EXP_TIME
+      - JWT_REFRESH_KEY
+      - JWT_REFRESH_KEY_EXP_TIME
+      - REDIS_HOST
+      - REDIS_PORT
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
+
+  snack-vote-frontend:
+    image: whalebro/snack-vote-frontend:1.23
+    deploy:
+      placement:
+        constraints:
+          - node.labels.type==front
+    networks:
+      - snack-vote-network
+    ports:
+      - "80:80"
+    depends_on:
+      - snack-vote-backend
+
+networks:
+  snack-vote-network:
+
+secrets:
+  DB_HOST:
+    external: true
+  DB_USERNAME:
+    external: true
+  DB_PASSWORD:
+    external: true
+  JWT_PRIVATE_KEY:
+    external: true
+  JWT_PRIVATE_KEY_EXP_TIME:
+    external: true
+  JWT_REFRESH_KEY:
+    external: true
+  JWT_REFRESH_KEY_EXP_TIME:
+    external: true
+  REDIS_HOST:
+    external: true
+  REDIS_PORT:
+    external: true

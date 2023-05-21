@@ -26,6 +26,7 @@ file_env() {
 
 # Import original DB envs of Ghost5
 envs=(
+	"DB_HOST"
     "DB_USERNAME"
     "DB_PASSWORD"
     "JWT_PRIVATE_KEY"
@@ -34,7 +35,6 @@ envs=(
     "JWT_REFRESH_KEY_EXP_TIME"
 	"REDIS_HOST"
 	"REDIS_PORT"
-    
 )
 
 # Run file_env() to fill the value of every original env from either $var or $fileVar
