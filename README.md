@@ -16,6 +16,8 @@ backend - NestJS, TypeOrm, graphql
 
 frontend - reactJS, graphql, typescript
 
+DB - RDS for mysql, Elastic Cache for Redis
+
 deploy - docker-stack, aws-EC2, Route53
 
 현재 테스트 배포 진행중 - <http://snackvote.org>
@@ -68,6 +70,16 @@ Architecture
 
   1.  client의 onError link가 refresh 동작 이후 재생성된 토큰을 바로 넘기지 않던 문제 수정. 이전 동작인 operation을 재수행할 때 header의 할당부터 시작하는 것이 아니라 이미 할당된 헤더를 사용하므로, 재생성된 토큰을 헤더에 직접 넣어주는 동작이 필요했음.
   2.  access token이 만료된 경우 뿐만 아니라 토큰이 이상한 값으로 오염되는 경우에도 refresh 동작을 일으키도록 수정. 이 경우엔 access token으로 만료를 무시하고라도 정보를 찾을 수 없으므로 클라이언트의 토큰을 지움.
+
+- ## DB docker mysql image --> AWS RDS for MySQL
+
+  초기엔 DB로 mysql docker image를 사용했었습니다. 이 이미지는 server 노드에 backend 이미지와 함께 존재했었는데, 서버와 db가 같은 공간에 존재하는것은 보안상으로도 적절치 않고 EC2 인스턴스의 메모리와 CPU 사용량에 부담을 주었습니다. 당시 EC2 저장소 사용량은 7~80%대로 상당히 무리가 있었습니다.
+
+  또한 mysql을 docker image로 사용하게 되면 DB의 직접적 관리를 EC2 서버에 연결해서 CLI를 통해 해야하므로 개발 관점에서도 굉장히 불편했습니다.
+
+  때문에 mysql과 서버를 분리시킬 겸 AWS RDS를 사용해서 DB를 구성하도록 수정했습니다. 기존에 있던 데이터는 덤핑해 .sql파일로 만들어 온전하게 이전했습니다.
+
+  내부로는 EC2, 외부로는 로컬 컴퓨터 IP만 열어두었기에 mysql workbench를 이용해 DB를 직접적으로 관리할 수 있고, EC2 저장소도 50%대로 여유있게 되었습니다.
 
 ## Todo
 
