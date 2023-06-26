@@ -43,6 +43,7 @@ import { redisStore } from 'cache-manager-redis-yet';
             host: process.env.REDIS_HOST,
             port: +process.env.REDIS_PORT,
           },
+          database: process.env.NODE_ENV === 'test' ? 5 : null,
           ttl: 60000,
         }),
       }),
