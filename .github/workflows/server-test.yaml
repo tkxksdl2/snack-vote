@@ -7,8 +7,18 @@ on:
   pull_request:
     types: [closed]
 jobs:
-  server-unit:
+  server-test:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_USER: snackvoteAdmin
+          MYSQL_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: snackvote-test
+        ports:
+          - 3306
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -16,6 +26,20 @@ jobs:
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      - name: Make envfile
+        uses: SpicyPizza/create-envfile@v2.0
+        with:
+          envkey_JWT_PRIVATE_KEY: "AnYPRIvatEkEY"
+          envkey_JWT_PRIVATE_KEY_EXP: "1h"
+          envkey_REFRESH_KEY: "AnyRefResHKeY"
+          envkey_JWT_REFRESH_KEY_EXP_TIME: "30d"
+          envkey_DB_HOST: 127.0.0.1
+          envkey_DB_PORT: 3306
+          envkey_DB_USERNAME: root
+          envkey_DB_PASSWORD: root
+          envkey_DB_NAME: snackvote-test
+          directory: server/
+          file_name: .env.test
       - name: Install dependencies
         run: |
           cd server
@@ -24,10 +48,20 @@ jobs:
         run: |
           cd server
           npm run test
+      - name: verify MySQL connection from host
+        run: |
+          mysql --version
+          sudo apt-get install -y mysql-client
+          sudo service mysql start
+          mysql -uroot -proot -e "CREATE DATABASE \`snackvote-test\`"
+      - name: run e2e test
+        run: |
+          cd server
+          npm run test:e2e
 
   Build-and-push:
     runs-on: ubuntu-latest
-    needs: server-unit
+    needs: server-test
     if: github.ref_name == 'main' && contains(github.event.head_commit.message, 'version')
     steps:
       - uses: actions/checkout@v3

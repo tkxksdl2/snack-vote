@@ -2,8 +2,12 @@
 **/*/node_modules/
 **/*/dist
 **/*.dev
+
+## testing
+**/.env.test
 **/test-queries.txt
 **/media/image/**
+
 # IDE
 /.idea
 /.awcache

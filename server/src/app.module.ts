@@ -36,19 +36,7 @@ import { redisStore } from 'cache-manager-redis-yet';
       ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
     ScheduleModule.forRoot(),
-    CacheModule.registerAsync<RedisClientOptions>({
-      useFactory: async () => ({
-        store: await redisStore({
-          socket: {
-            host: process.env.REDIS_HOST,
-            port: +process.env.REDIS_PORT,
-          },
-          database: process.env.NODE_ENV === 'test' ? 5 : null,
-          ttl: 60000,
-        }),
-      }),
-      isGlobal: true,
-    }),
+    CacheModule.register({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,

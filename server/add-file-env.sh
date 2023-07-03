@@ -33,8 +33,6 @@ envs=(
     "JWT_PRIVATE_KEY_EXP_TIME"
     "JWT_REFRESH_KEY"
     "JWT_REFRESH_KEY_EXP_TIME"
-	"REDIS_HOST"
-	"REDIS_PORT"
 )
 
 # Run file_env() to fill the value of every original env from either $var or $fileVar
