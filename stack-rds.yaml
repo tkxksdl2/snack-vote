@@ -34,7 +34,7 @@ services:
         max-file: "10"
 
   snack-vote-frontend:
-    image: whalebro/snack-vote-frontend:1.24
+    image: whalebro/snack-vote-frontend:1.251
     deploy:
       placement:
         constraints:
@@ -43,6 +43,7 @@ services:
       - snack-vote-network
     ports:
       - "80:80"
+      - "433:433"
     depends_on:
       - snack-vote-backend
 
