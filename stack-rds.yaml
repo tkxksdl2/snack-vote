@@ -34,7 +34,7 @@ services:
         max-file: "10"
 
   snack-vote-frontend:
-    image: whalebro/snack-vote-frontend:1.251
+    image: whalebro/snack-vote-frontend:1.252
     deploy:
       placement:
         constraints:
@@ -46,6 +46,11 @@ services:
       - "433:433"
     depends_on:
       - snack-vote-backend
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/lib/letsencrypt:/var/lib/letsencrypt
+      - /home/ubuntu/meta/nginx/sites.conf:/etc/nginx/conf.d/sites.conf
+      - /home/ubuntu/meta/nginx/sites-enabled:/etc/nginx/sites-enabled
 
 networks:
   snack-vote-network:
