@@ -22,7 +22,6 @@ services:
       ROOT_EMAIL_FILE: /run/secrets/ROOT_EMAIL_FILE
       ROOT_PASSWORD_FILE: /run/secrets/ROOT_PASSWORD_FILE
       ROOT_NAME_FILE: /run/secrets/ROOT_NAME_FILE
-
     secrets:
       - DB_HOST
       - DB_USERNAME
@@ -31,6 +30,9 @@ services:
       - JWT_PRIVATE_KEY_EXP_TIME
       - JWT_REFRESH_KEY
       - JWT_REFRESH_KEY_EXP_TIME
+      - ROOT_EMAIL
+      - ROOT_PASSWORD
+      - ROOT_NAME
     logging:
       driver: "json-file"
       options:
