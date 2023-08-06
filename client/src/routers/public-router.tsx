@@ -14,6 +14,9 @@ import { UpdateUser } from "../pages/private/update-user";
 import { VotedOpinions } from "../pages/private/voted-opinions";
 import { MyComments } from "../pages/private/my-comments";
 import { Footer } from "../components/footer";
+import { IssueList } from "../pages/public/issue-list";
+import { IssueDetail } from "../components/issue-snippets/issue-detail";
+import { CreateIssue } from "../pages/private/create-issue";
 
 interface RoutesArray {
   path: string;
@@ -27,6 +30,7 @@ export const PublicRouter = () => {
       path: `/${c.toLowerCase()}/create-agenda/`,
       element: <CreateAgenda category={c} />,
     })),
+    { path: "/create-issue/", element: <CreateIssue /> },
     {
       path: "/my-agendas/",
       element: <MyAgendas />,
@@ -49,7 +53,10 @@ export const PublicRouter = () => {
         <Route path="/" element={<Main />} />
         <Route path="/agenda/:id" element={<AgendaDetail />} />
         <Route path="/create-user/" element={<CreateUser />} />
+        <Route path="/issues" element={<IssueList />} />
+        <Route path="/issues/:id" element={<IssueDetail />} />
         <Route path="*" element={<Navigate to={"/"} />} />
+
         {Object.values(Category).map((c) => (
           <Route
             key={`category-${c}/`}

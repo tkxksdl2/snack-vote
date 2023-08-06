@@ -16,6 +16,18 @@ export type Scalars = {
   DateTime: any;
 };
 
+export type AddIssueContentInput = {
+  content: Scalars['String'];
+  issueId: Scalars['Int'];
+};
+
+export type AddIssueContentOutput = {
+  __typename?: 'AddIssueContentOutput';
+  error?: Maybe<Scalars['String']>;
+  ok: Scalars['Boolean'];
+  result?: Maybe<IssueContent>;
+};
+
 export type Agenda = {
   __typename?: 'Agenda';
   author?: Maybe<User>;
@@ -84,6 +96,18 @@ export type CreateCommentsOutput = {
   ok: Scalars['Boolean'];
 };
 
+export type CreateIssueInput = {
+  content: Scalars['String'];
+  subject: Scalars['String'];
+};
+
+export type CreateIssueOutput = {
+  __typename?: 'CreateIssueOutput';
+  error?: Maybe<Scalars['String']>;
+  ok: Scalars['Boolean'];
+  result?: Maybe<Issue>;
+};
+
 export type CreateUserInput = {
   birth: Scalars['DateTime'];
   email: Scalars['String'];
@@ -109,6 +133,26 @@ export type DeleteCommentsInput = {
 
 export type DeleteCommentsOutput = {
   __typename?: 'DeleteCommentsOutput';
+  error?: Maybe<Scalars['String']>;
+  ok: Scalars['Boolean'];
+};
+
+export type DeleteIssueContentInput = {
+  issueContentId: Scalars['Int'];
+};
+
+export type DeleteIssueContentOutput = {
+  __typename?: 'DeleteIssueContentOutput';
+  error?: Maybe<Scalars['String']>;
+  ok: Scalars['Boolean'];
+};
+
+export type DeleteIssueInput = {
+  issueId: Scalars['Int'];
+};
+
+export type DeleteIssueOutput = {
+  __typename?: 'DeleteIssueOutput';
   error?: Maybe<Scalars['String']>;
   ok: Scalars['Boolean'];
 };
@@ -146,6 +190,18 @@ export type GetAllAgendasOutput = {
   totalPage?: Maybe<Scalars['Int']>;
 };
 
+export type GetAllIssuesInput = {
+  page?: InputMaybe<Scalars['Int']>;
+};
+
+export type GetAllIssuesOutput = {
+  __typename?: 'GetAllIssuesOutput';
+  error?: Maybe<Scalars['String']>;
+  issues?: Maybe<Array<Issue>>;
+  ok: Scalars['Boolean'];
+  totalPage?: Maybe<Scalars['Int']>;
+};
+
 export type GetCommentsByAgendaInput = {
   agendaId: Scalars['Int'];
   page?: InputMaybe<Scalars['Int']>;
@@ -157,6 +213,17 @@ export type GetCommentsByAgendaOutput = {
   error?: Maybe<Scalars['String']>;
   ok: Scalars['Boolean'];
   totalPage?: Maybe<Scalars['Int']>;
+};
+
+export type GetIssueAndContentsByIdInput = {
+  issueId: Scalars['Int'];
+};
+
+export type GetIssueAndContentsByIdOutput = {
+  __typename?: 'GetIssueAndContentsByIdOutput';
+  error?: Maybe<Scalars['String']>;
+  issue?: Maybe<Issue>;
+  ok: Scalars['Boolean'];
 };
 
 export type GetMyAgendasInput = {
@@ -195,6 +262,30 @@ export type GetmyAgendasOutput = {
   totalPage?: Maybe<Scalars['Int']>;
 };
 
+export type Issue = {
+  __typename?: 'Issue';
+  author?: Maybe<User>;
+  contentCount: Scalars['Int'];
+  createdAt: Scalars['DateTime'];
+  deletedAt?: Maybe<Scalars['DateTime']>;
+  hasAnswer: Scalars['Boolean'];
+  id: Scalars['Float'];
+  issueContents?: Maybe<Array<IssueContent>>;
+  subject: Scalars['String'];
+  updatedAt: Scalars['DateTime'];
+};
+
+export type IssueContent = {
+  __typename?: 'IssueContent';
+  author?: Maybe<User>;
+  content: Scalars['String'];
+  createdAt: Scalars['DateTime'];
+  deletedAt?: Maybe<Scalars['DateTime']>;
+  id: Scalars['Float'];
+  issue: Issue;
+  updatedAt: Scalars['DateTime'];
+};
+
 export type LoginInput = {
   email: Scalars['String'];
   password: Scalars['String'];
@@ -210,16 +301,26 @@ export type LoginOutput = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  addIssueContent: AddIssueContentOutput;
   createAgenda: CreateAgendaOutput;
   createComments: CreateCommentsOutput;
+  createIssue: CreateIssueOutput;
   createUser: CommonOutput;
   deleteAgenda: DeleteAgendaOutput;
   deleteComments: DeleteCommentsOutput;
+  deleteIssue: DeleteIssueOutput;
+  deleteIssueContent: DeleteIssueContentOutput;
   deleteUser: DeleteUserOutput;
   login: LoginOutput;
   refresh: RefreshOutput;
+  updateIssueContent: UpdateIssueContentOutput;
   updateUser: UpdateUserOutput;
   voteOrUnvote: VoteOrUnvoteOutput;
+};
+
+
+export type MutationAddIssueContentArgs = {
+  input: AddIssueContentInput;
 };
 
 
@@ -230,6 +331,11 @@ export type MutationCreateAgendaArgs = {
 
 export type MutationCreateCommentsArgs = {
   input: CreateCommentsInput;
+};
+
+
+export type MutationCreateIssueArgs = {
+  input: CreateIssueInput;
 };
 
 
@@ -248,6 +354,16 @@ export type MutationDeleteCommentsArgs = {
 };
 
 
+export type MutationDeleteIssueArgs = {
+  input: DeleteIssueInput;
+};
+
+
+export type MutationDeleteIssueContentArgs = {
+  input: DeleteIssueContentInput;
+};
+
+
 export type MutationDeleteUserArgs = {
   input: DeleteUserInput;
 };
@@ -260,6 +376,11 @@ export type MutationLoginArgs = {
 
 export type MutationRefreshArgs = {
   input: RefreshInput;
+};
+
+
+export type MutationUpdateIssueContentArgs = {
+  input: UpdateIssueContentInput;
 };
 
 
@@ -289,7 +410,9 @@ export type Query = {
   __typename?: 'Query';
   findAgendaById: FindAgendaByIdOutput;
   getAllAgendas: GetAllAgendasOutput;
+  getAllIssues: GetAllIssuesOutput;
   getCommentsByAgenda: GetCommentsByAgendaOutput;
+  getIssueAndContentsById: GetIssueAndContentsByIdOutput;
   getMostVotedAgendasValue: Array<Agenda>;
   getMyAgendas: GetmyAgendasOutput;
   getMyComments: GetMyCommentsOutput;
@@ -309,8 +432,18 @@ export type QueryGetAllAgendasArgs = {
 };
 
 
+export type QueryGetAllIssuesArgs = {
+  input: GetAllIssuesInput;
+};
+
+
 export type QueryGetCommentsByAgendaArgs = {
   input: GetCommentsByAgendaInput;
+};
+
+
+export type QueryGetIssueAndContentsByIdArgs = {
+  input: GetIssueAndContentsByIdInput;
 };
 
 
@@ -345,16 +478,6 @@ export type RefreshOutput = {
   ok: Scalars['Boolean'];
 };
 
-export type RefreshTokens = {
-  __typename?: 'RefreshTokens';
-  createdAt: Scalars['DateTime'];
-  deletedAt?: Maybe<Scalars['DateTime']>;
-  id: Scalars['Float'];
-  refreshToken: Scalars['String'];
-  updatedAt: Scalars['DateTime'];
-  user: User;
-};
-
 export type SearchAgendasByCategoryInput = {
   category: Category;
   page?: InputMaybe<Scalars['Int']>;
@@ -373,6 +496,18 @@ export enum Sex {
   Female = 'Female',
   Male = 'Male'
 }
+
+export type UpdateIssueContentInput = {
+  content: Scalars['String'];
+  issueContentId: Scalars['Int'];
+};
+
+export type UpdateIssueContentOutput = {
+  __typename?: 'UpdateIssueContentOutput';
+  error?: Maybe<Scalars['String']>;
+  ok: Scalars['Boolean'];
+  result?: Maybe<IssueContent>;
+};
 
 export type UpdateUserInput = {
   email?: InputMaybe<Scalars['String']>;
@@ -397,10 +532,11 @@ export type User = {
   deletedAt?: Maybe<Scalars['DateTime']>;
   email: Scalars['String'];
   id: Scalars['Float'];
+  issueContents: Array<Issue>;
+  issues: Array<Issue>;
   name: Scalars['String'];
   password: Scalars['String'];
   profileImage?: Maybe<Scalars['String']>;
-  refreshToken?: Maybe<RefreshTokens>;
   role: UserRole;
   sex: Sex;
   updatedAt: Scalars['DateTime'];
@@ -444,7 +580,66 @@ export type RefreshMutationVariables = Exact<{
 
 export type RefreshMutation = { __typename?: 'Mutation', refresh: { __typename?: 'RefreshOutput', ok: boolean, error?: string | null, newAccessToken?: string | null } };
 
+export type UpdateIssueContentMutationVariables = Exact<{
+  input: UpdateIssueContentInput;
+}>;
+
+
+export type UpdateIssueContentMutation = { __typename?: 'Mutation', updateIssueContent: { __typename?: 'UpdateIssueContentOutput', ok: boolean, error?: string | null, result?: { __typename?: 'IssueContent', id: number, content: string } | null } };
+
+export type DeleteIssuecontentMutationVariables = Exact<{
+  input: DeleteIssueContentInput;
+}>;
+
+
+export type DeleteIssuecontentMutation = { __typename?: 'Mutation', deleteIssueContent: { __typename?: 'DeleteIssueContentOutput', ok: boolean, error?: string | null } };
+
+export type IssueContentPartsFragment = { __typename?: 'IssueContent', id: number, content: string, createdAt: any, updatedAt: any, deletedAt?: any | null, author?: { __typename?: 'User', id: number, name: string } | null } & { ' $fragmentName'?: 'IssueContentPartsFragment' };
+
+export type GetIssueAndContentsByIdQueryVariables = Exact<{
+  input: GetIssueAndContentsByIdInput;
+}>;
+
+
+export type GetIssueAndContentsByIdQuery = { __typename?: 'Query', getIssueAndContentsById: { __typename?: 'GetIssueAndContentsByIdOutput', ok: boolean, error?: string | null, issue?: { __typename?: 'Issue', subject: string, contentCount: number, hasAnswer: boolean, createdAt: any, author?: { __typename?: 'User', id: number, name: string } | null, issueContents?: Array<(
+        { __typename?: 'IssueContent' }
+        & { ' $fragmentRefs'?: { 'IssueContentPartsFragment': IssueContentPartsFragment } }
+      )> | null } | null } };
+
+export type AddIssueContentMutationVariables = Exact<{
+  input: AddIssueContentInput;
+}>;
+
+
+export type AddIssueContentMutation = { __typename?: 'Mutation', addIssueContent: { __typename?: 'AddIssueContentOutput', ok: boolean, result?: { __typename?: 'IssueContent', content: string } | null } };
+
+export type DeleteIssueMutationVariables = Exact<{
+  input: DeleteIssueInput;
+}>;
+
+
+export type DeleteIssueMutation = { __typename?: 'Mutation', deleteIssue: { __typename?: 'DeleteIssueOutput', ok: boolean, error?: string | null } };
+
+export type CreateIssueMutationVariables = Exact<{
+  input: CreateIssueInput;
+}>;
+
+
+export type CreateIssueMutation = { __typename?: 'Mutation', createIssue: { __typename?: 'CreateIssueOutput', ok: boolean, error?: string | null, result?: { __typename?: 'Issue', id: number, createdAt: any, subject: string, issueContents?: Array<{ __typename?: 'IssueContent', content: string }> | null } | null } };
+
 export type MeFragment = { __typename?: 'User', name: string } & { ' $fragmentName'?: 'MeFragment' };
+
+export type IssuePartsFragment = { __typename?: 'Issue', id: number, subject: string, hasAnswer: boolean, createdAt: any, contentCount: number, author?: { __typename?: 'User', id: number, name: string } | null } & { ' $fragmentName'?: 'IssuePartsFragment' };
+
+export type GetAllIssuesQueryVariables = Exact<{
+  input: GetAllIssuesInput;
+}>;
+
+
+export type GetAllIssuesQuery = { __typename?: 'Query', getAllIssues: { __typename?: 'GetAllIssuesOutput', ok: boolean, error?: string | null, totalPage?: number | null, issues?: Array<(
+      { __typename?: 'Issue' }
+      & { ' $fragmentRefs'?: { 'IssuePartsFragment': IssuePartsFragment } }
+    )> | null } };
 
 export type AgendaPartsFragment = { __typename?: 'Agenda', id: number, subject: string, seriousness: number, category: Category, createdAt: any, opinions: Array<{ __typename?: 'Opinion', id: number, opinionText: string, votedUserCount: number }>, author?: { __typename?: 'User', id: number, name: string } | null } & { ' $fragmentName'?: 'AgendaPartsFragment' };
 
@@ -585,11 +780,20 @@ export type UpdateUserMutationVariables = Exact<{
 
 export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'UpdateUserOutput', ok: boolean, error?: string | null } };
 
+export const IssueContentPartsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"IssueContentParts"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"IssueContent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"deletedAt"}},{"kind":"Field","name":{"kind":"Name","value":"author"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<IssueContentPartsFragment, unknown>;
 export const MeFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Me"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"User"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]} as unknown as DocumentNode<MeFragment, unknown>;
+export const IssuePartsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"IssueParts"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Issue"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"hasAnswer"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"contentCount"}},{"kind":"Field","name":{"kind":"Name","value":"author"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<IssuePartsFragment, unknown>;
 export const AgendaPartsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"AgendaParts"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Agenda"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"seriousness"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"opinions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"opinionText"}},{"kind":"Field","name":{"kind":"Name","value":"votedUserCount"}}]}},{"kind":"Field","name":{"kind":"Name","value":"author"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<AgendaPartsFragment, unknown>;
 export const AgendaDetailPartsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"AgendaDetailParts"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Agenda"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"seriousness"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"opinions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"opinionText"}},{"kind":"Field","name":{"kind":"Name","value":"votedUserCount"}},{"kind":"Field","name":{"kind":"Name","value":"vote"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"sex"}},{"kind":"Field","name":{"kind":"Name","value":"birth"}}]}}]}}]}}]}}]} as unknown as DocumentNode<AgendaDetailPartsFragment, unknown>;
 export const CommentPartsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"CommentParts"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Comments"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"bundleId"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"deletedAt"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"author"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<CommentPartsFragment, unknown>;
 export const RefreshDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"refresh"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"RefreshInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"refresh"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ok"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"newAccessToken"}}]}}]}}]} as unknown as DocumentNode<RefreshMutation, RefreshMutationVariables>;
+export const UpdateIssueContentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"updateIssueContent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateIssueContentInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateIssueContent"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ok"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"result"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"content"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateIssueContentMutation, UpdateIssueContentMutationVariables>;
+export const DeleteIssuecontentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"deleteIssuecontent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteIssueContentInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteIssueContent"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ok"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<DeleteIssuecontentMutation, DeleteIssuecontentMutationVariables>;
+export const GetIssueAndContentsByIdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getIssueAndContentsById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"GetIssueAndContentsByIdInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getIssueAndContentsById"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ok"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"issue"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"contentCount"}},{"kind":"Field","name":{"kind":"Name","value":"hasAnswer"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"author"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"issueContents"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"IssueContentParts"}}]}}]}}]}}]}},...IssueContentPartsFragmentDoc.definitions]} as unknown as DocumentNode<GetIssueAndContentsByIdQuery, GetIssueAndContentsByIdQueryVariables>;
+export const AddIssueContentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"addIssueContent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"AddIssueContentInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addIssueContent"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ok"}},{"kind":"Field","name":{"kind":"Name","value":"result"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"content"}}]}}]}}]}}]} as unknown as DocumentNode<AddIssueContentMutation, AddIssueContentMutationVariables>;
+export const DeleteIssueDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"deleteIssue"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteIssueInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteIssue"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ok"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<DeleteIssueMutation, DeleteIssueMutationVariables>;
+export const CreateIssueDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createIssue"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateIssueInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createIssue"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ok"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"result"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"issueContents"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"content"}}]}}]}}]}}]}}]} as unknown as DocumentNode<CreateIssueMutation, CreateIssueMutationVariables>;
+export const GetAllIssuesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getAllIssues"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"GetAllIssuesInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getAllIssues"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ok"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"totalPage"}},{"kind":"Field","name":{"kind":"Name","value":"issues"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"IssueParts"}}]}}]}}]}},...IssuePartsFragmentDoc.definitions]} as unknown as DocumentNode<GetAllIssuesQuery, GetAllIssuesQueryVariables>;
 export const GetAllAgendasDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getAllAgendas"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"GetAllAgendasInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getAllAgendas"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ok"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"totalPage"}},{"kind":"Field","name":{"kind":"Name","value":"agendas"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"AgendaParts"}}]}}]}}]}},...AgendaPartsFragmentDoc.definitions]} as unknown as DocumentNode<GetAllAgendasQuery, GetAllAgendasQueryVariables>;
 export const SearchAgendasByCategoryDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"searchAgendasByCategory"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SearchAgendasByCategoryInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"searchAgendasByCategory"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ok"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"totalPage"}},{"kind":"Field","name":{"kind":"Name","value":"agendas"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"AgendaParts"}}]}}]}}]}},...AgendaPartsFragmentDoc.definitions]} as unknown as DocumentNode<SearchAgendasByCategoryQuery, SearchAgendasByCategoryQueryVariables>;
 export const GetMostVotedAgendasValueDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getMostVotedAgendasValue"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getMostVotedAgendasValue"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"AgendaParts"}}]}}]}},...AgendaPartsFragmentDoc.definitions]} as unknown as DocumentNode<GetMostVotedAgendasValueQuery, GetMostVotedAgendasValueQueryVariables>;

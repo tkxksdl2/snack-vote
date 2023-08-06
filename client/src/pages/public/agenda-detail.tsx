@@ -269,6 +269,10 @@ export const AgendaDetail = () => {
                     }}
                     className="hover:text-red-800"
                   >
+                    <FontAwesomeIcon
+                      className="mx-2 cursor-pointer"
+                      icon={solid("trash-can")}
+                    />
                     투표 삭제
                   </button>
                 )}

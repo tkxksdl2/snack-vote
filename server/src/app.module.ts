@@ -19,6 +19,9 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from '@nestjs/cache-manager';
 import type { RedisClientOptions } from 'redis';
 import { redisStore } from 'cache-manager-redis-yet';
+import { IssueModule } from './issue/issue.module';
+import { Issue } from './issue/entities/issue.entity';
+import { IssueContent } from './issue/entities/issue-content.entity';
 
 @Module({
   imports: [
@@ -45,7 +48,7 @@ import { redisStore } from 'cache-manager-redis-yet';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       synchronize: true,
-      entities: [User, Agenda, Opinion, Vote, Comments],
+      entities: [User, Agenda, Opinion, Vote, Comments, Issue, IssueContent],
     }),
     JwtModule.forRoot({
       accessTokenKey: process.env.JWT_PRIVATE_KEY,
@@ -58,6 +61,7 @@ import { redisStore } from 'cache-manager-redis-yet';
     AuthModule,
     CommentsModule,
     UploadModule,
+    IssueModule,
   ],
   controllers: [],
   providers: [],

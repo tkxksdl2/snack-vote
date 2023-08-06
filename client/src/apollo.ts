@@ -19,6 +19,7 @@ export const isLoggedInVar = makeVar(Boolean(token));
 export const accessTokenVar = makeVar(token);
 export const userIdvar = makeVar(refreshUserId);
 export const agendaListDefaultPageVar = makeVar(1);
+export const shouldRefetchVar = makeVar(false);
 
 export let client: ApolloClient<object>;
 
@@ -70,6 +71,7 @@ const linkOnError = onError(({ graphQLErrors, operation, forward }) => {
                 ...oldHeaders,
                 "X-JWT": data.refresh.newAccessToken,
               });
+              window.location.reload();
               return forward(operation);
             } else {
               accessTokenVar(null);

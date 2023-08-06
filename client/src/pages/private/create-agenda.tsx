@@ -1,4 +1,4 @@
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { Slider } from "@mui/material";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -37,7 +37,7 @@ export const CreateAgenda: React.FC<ICreateAgenda> = ({ category }) => {
     getValues,
     formState: { errors },
   } = useForm<IForm>();
-  const [createAgenda, { loading, data, error }] = useMutation<
+  const [createAgenda, { loading, data }] = useMutation<
     CreateAgendaMutation,
     CreateAgendaMutationVariables
   >(CREATE_AGENDA, {
@@ -92,10 +92,12 @@ export const CreateAgenda: React.FC<ICreateAgenda> = ({ category }) => {
         <title>{CATEGORY_PARSE_OBJ[category]} - SnackVote</title>
       </Helmet>
       <div>
-        <div className="my-10 pl-11 font-bold text-4xl text-gray-800">
-          {CATEGORY_PARSE_OBJ[category]}
+        <div className="mt-8 mb-4 pl-11 font-bold text-4xl text-gray-800">
+          <span className=" border-b-2 border-gray-700">
+            {CATEGORY_PARSE_OBJ[category]}
+          </span>
         </div>
-        <div className="max-w-4xl w-full pt-8 c-agenda-form h-fit bg-white text-lg text-gray-800 font-semibold rounded-sm">
+        <div className="max-w-4xl w-full pt-8 c-agenda-form h-fit bg-white text-lg text-gray-800 font-semibold rounded-md">
           <form className="px-11" onSubmit={handleSubmit(onValid)}>
             {errors.subject?.message ? (
               <div className="error-div">{errors.subject.message}</div>

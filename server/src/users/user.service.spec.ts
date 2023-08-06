@@ -8,6 +8,7 @@ import { UserService } from './user.service';
 import { Cache } from 'cache-manager';
 import { REFRESH_TOKEN_EXP_TIME } from 'src/common/common.constants';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Logger } from '@nestjs/common';
 
 const mockRepository = () => ({
   findOne: jest.fn(),
@@ -68,6 +69,32 @@ describe('UserService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('onModuleInit', () => {
+    it('should create Root Admin User', async () => {
+      jest.spyOn(service, 'createUser').mockImplementationOnce(jest.fn());
+      await service.onModuleInit();
+      expectCalledTimesAndWith(service.createUser, 1, [
+        {
+          email: process.env.ROOT_EMAIL,
+          password: process.env.ROOT_PASSWORD,
+          name: process.env.ROOT_NAME,
+          sex: Sex.Male,
+          role: UserRole.Admin,
+          birth: new Date('1997-04-16'),
+        },
+      ]);
+    });
+    it('should fail and log error', async () => {
+      jest.spyOn(service, 'createUser').mockImplementationOnce(() => {
+        throw new Error();
+      });
+      jest.spyOn(Logger, 'error').mockImplementationOnce(jest.fn());
+
+      await service.onModuleInit();
+      expect(Logger.error).toHaveBeenCalled();
+    });
   });
 
   describe('findOneById', () => {

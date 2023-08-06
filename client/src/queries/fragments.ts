@@ -56,3 +56,31 @@ export const COMMENT_FRAGMENT = gql`
     }
   }
 `;
+
+export const ISSUE_FRAGMENT = gql`
+  fragment IssueParts on Issue {
+    id
+    subject
+    hasAnswer
+    createdAt
+    contentCount
+    author {
+      id
+      name
+    }
+  }
+`;
+
+export const ISSUE_CONTENT_FRAGMENT = gql`
+  fragment IssueContentParts on IssueContent {
+    id
+    content
+    createdAt
+    updatedAt
+    deletedAt
+    author {
+      id
+      name
+    }
+  }
+`;

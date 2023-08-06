@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   MAINPAGE_AGENDAS_UNIT,
@@ -68,7 +68,7 @@ export class AgendaService implements OnModuleInit {
   @Cron('*/30 * * * *')
   async setMostVotedAgendas() {
     const result = await this.getMostVotedAgendas();
-    console.log('renew most voted agendas');
+    Logger.log('Renew most voted agendas', 'AgendaService');
     if (result.ok) {
       this.mostVotedAgendas = null;
       this.mostVotedAgendas = result.agendas;
@@ -191,7 +191,6 @@ export class AgendaService implements OnModuleInit {
       }
       return { ok: true, agendas };
     } catch (e) {
-      console.log(e);
       return { ok: false, error: 'interal server error' };
     }
   }

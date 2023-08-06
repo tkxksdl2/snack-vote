@@ -12,6 +12,7 @@ import { Agenda } from 'src/agenda/entities/agenda.entity';
 import { IsDate, IsEmail, IsEnum, IsString } from 'class-validator';
 import { Comments } from '../../comments/entities/comments.entity';
 import { Vote } from 'src/agenda/entities/vote.entity';
+import { Issue } from 'src/issue/entities/issue.entity';
 
 export enum UserRole {
   Client = 'Client',
@@ -80,6 +81,14 @@ export class User extends CommonEntity {
     nullable: true,
   })
   comments?: Comments[];
+
+  @Field((type) => [Issue])
+  @OneToMany(() => Issue, (issue) => issue.author, { nullable: true })
+  issues?: Issue[];
+
+  @Field((type) => [Issue])
+  @OneToMany(() => Issue, (issue) => issue.author, { nullable: true })
+  issueContents?: Issue[];
 
   @BeforeInsert()
   @BeforeUpdate()

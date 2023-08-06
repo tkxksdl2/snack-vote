@@ -13,6 +13,7 @@ import {
 import { Category } from "../gql/graphql";
 import { resetDefaultPage } from "../hooks/reset-default-page";
 import { useMe } from "../hooks/use-me";
+import { HeaderCategoryButton } from "./header-category-button";
 
 import { LoginModal } from "./login-modal";
 
@@ -56,18 +57,18 @@ export const Header = () => {
   const { data, refetch, loading } = useMe();
   return (
     <React.Fragment>
-      <header className="pt-3 pb-1 lg:px-5 px-1 bg-header border border-b-2 flex justify-center">
-        <div className="lg:max-w-4xl max-w-screen-md w-full px-2 flex justify-between items-center text-gray-700">
+      <header className="pt-3 pb-1 lg:px-5 px-1 bg-header  flex justify-center">
+        <div className="lg:max-w-4xl max-w-screen-md w-full px-2 flex justify-between items-center text-gray-300">
           <div className="lg:w-auto w-60 flex lg:flex-row lg:items-end flex-col">
             <Link to="/">
               <span
                 className="font-bold text-4xl"
                 style={{ fontFamily: '"Zen Dots" , cursive' }}
               >
-                <span className=" text-orange-700">Snack</span> Vote
+                <span className=" text-orange-300">Snack</span> Vote
               </span>
             </Link>
-            <span className="lg:mx-10 mx-4 text-sm font-bold text-gray-500">
+            <span className="lg:mx-10 mx-4 text-sm font-bold text-gray-100">
               간식처럼 간단한 투표
             </span>
           </div>
@@ -86,12 +87,12 @@ export const Header = () => {
               />
             </React.Fragment>
           ) : (
-            <div className="flex items-end">
+            <div className="flex items-end text-gray-800">
               <div className="h-6 w-6 mb-2 mx-2">
                 <button>
                   <FontAwesomeIcon
                     onClick={openUserDropout}
-                    className="h-6 w-6 p-1 rounded-full bg-gray-300"
+                    className="h-6 w-6 p-1 rounded-full text-gray-700 bg-gray-300"
                     icon={solid("user")}
                   />
                 </button>
@@ -155,39 +156,16 @@ export const Header = () => {
           )}
         </div>
       </header>
-      <div className="bg-naviation flex justify-center">
-        <div className="py-1 px-2 lg:max-w-2xl max-w-md w-full text-gray-200">
-          <Link
-            onClick={resetDefaultPage}
-            to={`/${Category.Humor.toLowerCase()}`}
-          >
-            <span className="px-3 border-r border-r-white">
-              {CATEGORY_PARSE_OBJ[Category.Humor]}
-            </span>
-          </Link>
-          <Link
-            onClick={resetDefaultPage}
-            to={`/${Category.Culture.toLowerCase()}`}
-          >
-            <span className="px-3 border-r border-r-white">
-              {CATEGORY_PARSE_OBJ[Category.Culture]}
-            </span>
-          </Link>
-          <Link
-            onClick={resetDefaultPage}
-            to={`/${Category.Social.toLowerCase()}`}
-          >
-            <span className="px-3 border-r border-r-white">
-              {CATEGORY_PARSE_OBJ[Category.Social]}
-            </span>
-          </Link>
-          <Link
-            onClick={resetDefaultPage}
-            to={`/${Category.Game.toLowerCase()}`}
-          >
-            <span className="px-3">{CATEGORY_PARSE_OBJ[Category.Game]}</span>
-          </Link>
+      <div className="py-1 px-2 font-semibold text-gray-200 bg-naviation flex justify-center">
+        <div className=" lg:max-w-2xl max-w-md lg:w-full w-fit">
+          <HeaderCategoryButton category={Category.Humor} />
+          <HeaderCategoryButton category={Category.Culture} />
+          <HeaderCategoryButton category={Category.Social} />
+          <HeaderCategoryButton category={Category.Game} />
         </div>
+        <Link onClick={resetDefaultPage} to={"/issues"}>
+          <span className="lg:inline block">🛠건의 사항</span>
+        </Link>
       </div>
     </React.Fragment>
   );

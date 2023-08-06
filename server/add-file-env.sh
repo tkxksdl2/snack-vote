@@ -33,6 +33,9 @@ envs=(
     "JWT_PRIVATE_KEY_EXP_TIME"
     "JWT_REFRESH_KEY"
     "JWT_REFRESH_KEY_EXP_TIME"
+	"ROOT_EMAIL_FILE"
+	"ROOT_PASSWORD_FILE"
+	"ROOT_NAME_FILE"
 )
 
 # Run file_env() to fill the value of every original env from either $var or $fileVar

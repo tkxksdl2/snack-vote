@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import {
@@ -315,12 +316,15 @@ describe('AgendaService', () => {
           jest.fn().mockResolvedValue({ ok: true, agendas: [{ id: 1 }] }),
         );
       const logSpy = jest
-        .spyOn(console, 'log')
+        .spyOn(Logger, 'log')
         .mockImplementationOnce(jest.fn());
       await service.setMostVotedAgendas();
       expect(service.getMostVotedAgendas).toHaveBeenCalledTimes(1);
       expect(logSpy).toHaveBeenCalledTimes(1);
-      expect(logSpy).toHaveBeenCalledWith('renew most voted agendas');
+      expect(logSpy).toHaveBeenCalledWith(
+        'Renew most voted agendas',
+        'AgendaService',
+      );
       expect(service.getMostVotedAgendasValue()).toEqual([{ id: 1 }]);
     });
   });

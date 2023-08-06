@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommonOutput } from 'src/common/dtos/output.dto';
 import { JwtService, TokenType } from 'src/jwt/jwt.service';
@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import { CreateUserInput } from './dtos/create-user.dto';
 import { FindUserByIdOutput } from './dtos/find-one-by-id.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
-import { User, UserRole } from './entities/user.entity';
+import { Sex, User, UserRole } from './entities/user.entity';
 import { RefreshInput, RefreshOutput } from './dtos/refresh.dto';
 import { DeleteUserInput, DeleteUserOutput } from './dtos/delete-user.dto';
 import { UpdateUserInput, UpdateUserOutput } from './dtos/update-user.dto';
@@ -23,6 +23,22 @@ export class UserService {
     private readonly cacheManager: Cache,
     private readonly jwtService: JwtService,
   ) {}
+
+  async onModuleInit() {
+    try {
+      this.createUser({
+        email: process.env.ROOT_EMAIL,
+        password: process.env.ROOT_PASSWORD,
+        name: process.env.ROOT_NAME,
+        sex: Sex.Male,
+        role: UserRole.Admin,
+        birth: new Date('1997-04-16'),
+      });
+      Logger.log('Root user created', 'UserService');
+    } catch (e) {
+      Logger.error('Error during root user creation', e.stack, 'UserService');
+    }
+  }
 
   async findOneById(id: number): Promise<FindUserByIdOutput> {
     try {
