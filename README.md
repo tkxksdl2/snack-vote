@@ -16,17 +16,33 @@ backend - NestJS, TypeOrm, graphql
 
 frontend - reactJS, graphql, typescript
 
-DB - RDS for mysql, Elastic Cache for Redis
+DB - RDS for mysql, Elastic Cache for Redis (임시)
 
 deploy - docker-stack, aws-EC2, Route53
 
-현재 테스트 배포 진행중 - <http://snackvote.org>
+현재 테스트 배포 진행중 - <https://snackvote.org>
+
+# 주요 기능
+
+- refresh token, role 기반 인증
+
+- 이진 투표 안건 작성 및 투표 기능, 투표 인원의 성별, 나이에 관한 통계 제공
+
+- 투표 게시글에 대한 댓글, 대댓글 CRUD
+
+- 투표 검색 및 작성글, 댓글 조회
+
+- 최근 최다 투표 발생 안건 메인 표시
+
+- markdown 활용 가능한 issue(건의사항) 게시판
+
+- nginx 컨테이너를 이용한 https certification
 
 # 프로젝트 아키텍처
 
 ERD
 
-<img src="images\ERD.png"  width="500" height="550">
+<img src="images\ERD.png"  width="900" height="450">
 
 Architecture
 
@@ -36,11 +52,11 @@ Architecture
 
 ---
 
-# updated
+# 개선사항
 
 - ## 모델 및 인기 글 기능 개선
 
-  모델 인기 글 추출 방법은 기존에 최근 n일 내의 게시글 중 최다 득표를 받은 게시글로 선정했었습니다.
+  기존의 모델 인기 글 추출 방법은 최근 n일 내의 게시글 중 최다 득표를 받은 게시글로 선정했었습니다.
 
   그러나 최근 글 이외에는 가져올 수 없어 지난 글이 재조명 된 경우 화면에 표시해줄 수 없고, 사용자 관점에서 인기 글이라는 관점에 잘 부합하지 않는다 생각했습니다.
 
@@ -54,7 +70,7 @@ Architecture
 
   github action을 이용해 main 브랜치에 push 혹은 pr이 일어날 때 테스트를 수행하고, commit message에서 version 태그를 감지해서 version<숫자>.<숫자> 일 때 docker server와 client 각각에서 해당 버전 태그의 이미지를 빌드해서 push하도록 했습니다.
 
-  aws사이드에서는 업데이트된 stack.yaml파일을 업로드하고 deploy를 실행하기만 하면 됩니다.
+  aws사이드에서는 업데이트된 stack.yaml 파일을 업로드하고 deploy를 실행하기만 하면 됩니다.
 
 - ## Refresh token 관련 개선 및 버그 수정
 
@@ -65,6 +81,8 @@ Architecture
   따라서 redis store를 cache module로 사용하여 refresh token을 관리하도록 변경했습니다.
 
   access token은 유저가 보관하므로 기존처럼 토큰 자체 만료 시간을 사용하지만, refresh token은 redis의 TTL 기능을 이용해 자동적으로 지워지도록 했습니다. RDBMS 사용이 줄었으므로 서버 부담도 덜고, 코드 자체도 간결해졌습니다.
+
+  \* 처음엔 학습 목적으로 aws Elasticache를 사용했으나 refresh token만을 저장하기 위해 사용하기엔 너무 무겁고 비용이 부담스러워 내부 cachemanager로 대체하였습니다.
 
   <**추가 버그 수정**>
 
@@ -81,8 +99,10 @@ Architecture
 
   내부로는 EC2, 외부로는 로컬 컴퓨터 IP만 열어두었기에 mysql workbench를 이용해 DB를 직접적으로 관리할 수 있고, EC2 저장소도 50%대로 여유있게 되었습니다.
 
+---
+
 ## Todo
 
-테스트 코드 추가
+Oauth 적용하기
 
 이미지 관련 기능 추가
