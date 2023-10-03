@@ -1,3 +1,4 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgendaRepository } from './agenda.repository';
@@ -8,7 +9,10 @@ import { Opinion } from './entities/opinion.entity';
 import { Vote } from './entities/vote.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Agenda, Opinion, Vote])],
+  imports: [
+    TypeOrmModule.forFeature([Agenda, Opinion, Vote]),
+    CacheModule.register({ max: 1000 }),
+  ],
   providers: [AgendaService, AgendaResolver, AgendaRepository],
   exports: [AgendaService],
 })

@@ -6,6 +6,10 @@ import { CommonOutput } from 'src/common/dtos/output.dto';
 export class VoteOrUnvoteInput {
   @Field((type) => Int)
   @IsInt()
+  agendaId: number;
+
+  @Field((type) => Int)
+  @IsInt()
   voteOpinionId: number;
 
   @Field((type) => Int)

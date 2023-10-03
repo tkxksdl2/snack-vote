@@ -14,19 +14,16 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  */
 const documents = {
     "\n  mutation refresh($input: RefreshInput!) {\n    refresh(input: $input) {\n      ok\n      error\n      newAccessToken\n    }\n  }\n": types.RefreshDocument,
-    "\n  mutation updateIssueContent($input: UpdateIssueContentInput!) {\n    updateIssueContent(input: $input) {\n      ok\n      error\n      result {\n        id\n        content\n      }\n    }\n  }\n": types.UpdateIssueContentDocument,
-    "\n  mutation deleteIssuecontent($input: DeleteIssueContentInput!) {\n    deleteIssueContent(input: $input) {\n      ok\n      error\n    }\n  }\n": types.DeleteIssuecontentDocument,
-    "\n  fragment IssueContentParts on IssueContent {\n    id\n    content\n    createdAt\n    updatedAt\n    deletedAt\n    author {\n      id\n      name\n    }\n  }\n": types.IssueContentPartsFragmentDoc,
-    "\n  query getIssueAndContentsById($input: GetIssueAndContentsByIdInput!) {\n    getIssueAndContentsById(input: $input) {\n      ok\n      error\n      issue {\n        subject\n        contentCount\n        hasAnswer\n        createdAt\n        author {\n          id\n          name\n        }\n        issueContents {\n          ...IssueContentParts\n        }\n      }\n    }\n  }\n  \n": types.GetIssueAndContentsByIdDocument,
-    "\n  mutation addIssueContent($input: AddIssueContentInput!) {\n    addIssueContent(input: $input) {\n      ok\n      result {\n        content\n      }\n    }\n  }\n": types.AddIssueContentDocument,
-    "\n  mutation deleteIssue($input: DeleteIssueInput!) {\n    deleteIssue(input: $input) {\n      ok\n      error\n    }\n  }\n": types.DeleteIssueDocument,
-    "\n  mutation createIssue($input: CreateIssueInput!) {\n    createIssue(input: $input) {\n      ok\n      error\n      result {\n        id\n        createdAt\n        subject\n        issueContents {\n          content\n        }\n      }\n    }\n  }\n": types.CreateIssueDocument,
     "\n          fragment Me on User {\n            name\n          }\n        ": types.MeFragmentDoc,
-    "\n  fragment IssueParts on Issue {\n    id\n    subject\n    hasAnswer\n    createdAt\n    contentCount\n    author {\n      id\n      name\n    }\n  }\n": types.IssuePartsFragmentDoc,
-    "\n  query getAllIssues($input: GetAllIssuesInput!) {\n    getAllIssues(input: $input) {\n      ok\n      error\n      totalPage\n      issues {\n        ...IssueParts\n      }\n    }\n  }\n  \n": types.GetAllIssuesDocument,
     "\n  fragment AgendaParts on Agenda {\n    id\n    subject\n    seriousness\n    category\n    createdAt\n    opinions {\n      id\n      opinionText\n      votedUserCount\n    }\n    author {\n      id\n      name\n    }\n  }\n": types.AgendaPartsFragmentDoc,
     "\n  fragment AgendaDetailParts on Agenda {\n    id\n    subject\n    seriousness\n    category\n    createdAt\n    opinions {\n      id\n      opinionText\n      votedUserCount\n      vote {\n        id\n        user {\n          id\n          sex\n          birth\n        }\n      }\n    }\n  }\n": types.AgendaDetailPartsFragmentDoc,
     "\n  fragment CommentParts on Comments {\n    id\n    bundleId\n    content\n    createdAt\n    deletedAt\n    depth\n    author {\n      id\n      name\n    }\n  }\n": types.CommentPartsFragmentDoc,
+    "\n  fragment IssueParts on Issue {\n    id\n    subject\n    hasAnswer\n    createdAt\n    contentCount\n    author {\n      id\n      name\n    }\n  }\n": types.IssuePartsFragmentDoc,
+    "\n  fragment IssueContentParts on IssueContent {\n    id\n    content\n    createdAt\n    updatedAt\n    deletedAt\n    author {\n      id\n      name\n    }\n  }\n": types.IssueContentPartsFragmentDoc,
+    "\n  mutation createIssue($input: CreateIssueInput!) {\n    createIssue(input: $input) {\n      ok\n      error\n      result {\n        id\n        createdAt\n        subject\n        issueContents {\n          content\n        }\n      }\n    }\n  }\n": types.CreateIssueDocument,
+    "\n  query getAllIssues($input: GetAllIssuesInput!) {\n    getAllIssues(input: $input) {\n      ok\n      error\n      totalPage\n      issues {\n        ...IssueParts\n      }\n    }\n  }\n  \n": types.GetAllIssuesDocument,
+    "\n  query getIssueAndContentsById($input: GetIssueAndContentsByIdInput!) {\n    getIssueAndContentsById(input: $input) {\n      ok\n      error\n      issue {\n        subject\n        contentCount\n        hasAnswer\n        createdAt\n        author {\n          id\n          name\n        }\n        issueContents {\n          ...IssueContentParts\n        }\n      }\n    }\n  }\n  \n": types.GetIssueAndContentsByIdDocument,
+    "\n  mutation deleteIssue($input: DeleteIssueInput!) {\n    deleteIssue(input: $input) {\n      ok\n      error\n    }\n  }\n": types.DeleteIssueDocument,
     "\n  query getAllAgendas($input: GetAllAgendasInput!) {\n    getAllAgendas(input: $input) {\n      ok\n      error\n      totalPage\n      agendas {\n        ...AgendaParts\n      }\n    }\n  }\n  \n": types.GetAllAgendasDocument,
     "\n  query searchAgendasByCategory($input: SearchAgendasByCategoryInput!) {\n    searchAgendasByCategory(input: $input) {\n      ok\n      error\n      totalPage\n      agendas {\n        ...AgendaParts\n      }\n    }\n  }\n  \n": types.SearchAgendasByCategoryDocument,
     "\n  query getMostVotedAgendasValue {\n    getMostVotedAgendasValue {\n      ...AgendaParts\n    }\n  }\n  \n": types.GetMostVotedAgendasValueDocument,
@@ -39,6 +36,9 @@ const documents = {
     "\n  mutation createComments($input: CreateCommentsInput!) {\n    createComments(input: $input) {\n      ok\n      error\n      comments {\n        ...CommentParts\n      }\n    }\n  }\n  \n": types.CreateCommentsDocument,
     "\n  query getMyComments($input: GetMyCommentsInput!) {\n    getMyComments(input: $input) {\n      ok\n      error\n      totalPage\n      comments {\n        createdAt\n        content\n        author {\n          id\n        }\n        agenda {\n          id\n          subject\n        }\n      }\n    }\n  }\n": types.GetMyCommentsDocument,
     "\n  mutation deleteComments($input: DeleteCommentsInput!) {\n    deleteComments(input: $input) {\n      ok\n      error\n    }\n  }\n": types.DeleteCommentsDocument,
+    "\n  mutation addIssueContent($input: AddIssueContentInput!) {\n    addIssueContent(input: $input) {\n      ok\n      result {\n        content\n      }\n    }\n  }\n": types.AddIssueContentDocument,
+    "\n  mutation updateIssueContent($input: UpdateIssueContentInput!) {\n    updateIssueContent(input: $input) {\n      ok\n      error\n      result {\n        id\n        content\n      }\n    }\n  }\n": types.UpdateIssueContentDocument,
+    "\n  mutation deleteIssuecontent($input: DeleteIssueContentInput!) {\n    deleteIssueContent(input: $input) {\n      ok\n      error\n    }\n  }\n": types.DeleteIssuecontentDocument,
     "\n  query me {\n    me {\n      id\n      email\n      name\n      role\n      sex\n      birth\n    }\n  }\n": types.MeDocument,
     "\n  mutation login($input: LoginInput!) {\n    login(input: $input) {\n      error\n      ok\n      accessToken\n      userId\n    }\n  }\n": types.LoginDocument,
     "\n  mutation createUser($input: CreateUserInput!) {\n    createUser(input: $input) {\n      ok\n      error\n    }\n  }\n": types.CreateUserDocument,
@@ -66,43 +66,7 @@ export function graphql(source: "\n  mutation refresh($input: RefreshInput!) {\n
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation updateIssueContent($input: UpdateIssueContentInput!) {\n    updateIssueContent(input: $input) {\n      ok\n      error\n      result {\n        id\n        content\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation updateIssueContent($input: UpdateIssueContentInput!) {\n    updateIssueContent(input: $input) {\n      ok\n      error\n      result {\n        id\n        content\n      }\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  mutation deleteIssuecontent($input: DeleteIssueContentInput!) {\n    deleteIssueContent(input: $input) {\n      ok\n      error\n    }\n  }\n"): (typeof documents)["\n  mutation deleteIssuecontent($input: DeleteIssueContentInput!) {\n    deleteIssueContent(input: $input) {\n      ok\n      error\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  fragment IssueContentParts on IssueContent {\n    id\n    content\n    createdAt\n    updatedAt\n    deletedAt\n    author {\n      id\n      name\n    }\n  }\n"): (typeof documents)["\n  fragment IssueContentParts on IssueContent {\n    id\n    content\n    createdAt\n    updatedAt\n    deletedAt\n    author {\n      id\n      name\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  query getIssueAndContentsById($input: GetIssueAndContentsByIdInput!) {\n    getIssueAndContentsById(input: $input) {\n      ok\n      error\n      issue {\n        subject\n        contentCount\n        hasAnswer\n        createdAt\n        author {\n          id\n          name\n        }\n        issueContents {\n          ...IssueContentParts\n        }\n      }\n    }\n  }\n  \n"): (typeof documents)["\n  query getIssueAndContentsById($input: GetIssueAndContentsByIdInput!) {\n    getIssueAndContentsById(input: $input) {\n      ok\n      error\n      issue {\n        subject\n        contentCount\n        hasAnswer\n        createdAt\n        author {\n          id\n          name\n        }\n        issueContents {\n          ...IssueContentParts\n        }\n      }\n    }\n  }\n  \n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  mutation addIssueContent($input: AddIssueContentInput!) {\n    addIssueContent(input: $input) {\n      ok\n      result {\n        content\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation addIssueContent($input: AddIssueContentInput!) {\n    addIssueContent(input: $input) {\n      ok\n      result {\n        content\n      }\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  mutation deleteIssue($input: DeleteIssueInput!) {\n    deleteIssue(input: $input) {\n      ok\n      error\n    }\n  }\n"): (typeof documents)["\n  mutation deleteIssue($input: DeleteIssueInput!) {\n    deleteIssue(input: $input) {\n      ok\n      error\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  mutation createIssue($input: CreateIssueInput!) {\n    createIssue(input: $input) {\n      ok\n      error\n      result {\n        id\n        createdAt\n        subject\n        issueContents {\n          content\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation createIssue($input: CreateIssueInput!) {\n    createIssue(input: $input) {\n      ok\n      error\n      result {\n        id\n        createdAt\n        subject\n        issueContents {\n          content\n        }\n      }\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
 export function graphql(source: "\n          fragment Me on User {\n            name\n          }\n        "): (typeof documents)["\n          fragment Me on User {\n            name\n          }\n        "];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  fragment IssueParts on Issue {\n    id\n    subject\n    hasAnswer\n    createdAt\n    contentCount\n    author {\n      id\n      name\n    }\n  }\n"): (typeof documents)["\n  fragment IssueParts on Issue {\n    id\n    subject\n    hasAnswer\n    createdAt\n    contentCount\n    author {\n      id\n      name\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  query getAllIssues($input: GetAllIssuesInput!) {\n    getAllIssues(input: $input) {\n      ok\n      error\n      totalPage\n      issues {\n        ...IssueParts\n      }\n    }\n  }\n  \n"): (typeof documents)["\n  query getAllIssues($input: GetAllIssuesInput!) {\n    getAllIssues(input: $input) {\n      ok\n      error\n      totalPage\n      issues {\n        ...IssueParts\n      }\n    }\n  }\n  \n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -115,6 +79,30 @@ export function graphql(source: "\n  fragment AgendaDetailParts on Agenda {\n   
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  fragment CommentParts on Comments {\n    id\n    bundleId\n    content\n    createdAt\n    deletedAt\n    depth\n    author {\n      id\n      name\n    }\n  }\n"): (typeof documents)["\n  fragment CommentParts on Comments {\n    id\n    bundleId\n    content\n    createdAt\n    deletedAt\n    depth\n    author {\n      id\n      name\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment IssueParts on Issue {\n    id\n    subject\n    hasAnswer\n    createdAt\n    contentCount\n    author {\n      id\n      name\n    }\n  }\n"): (typeof documents)["\n  fragment IssueParts on Issue {\n    id\n    subject\n    hasAnswer\n    createdAt\n    contentCount\n    author {\n      id\n      name\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment IssueContentParts on IssueContent {\n    id\n    content\n    createdAt\n    updatedAt\n    deletedAt\n    author {\n      id\n      name\n    }\n  }\n"): (typeof documents)["\n  fragment IssueContentParts on IssueContent {\n    id\n    content\n    createdAt\n    updatedAt\n    deletedAt\n    author {\n      id\n      name\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation createIssue($input: CreateIssueInput!) {\n    createIssue(input: $input) {\n      ok\n      error\n      result {\n        id\n        createdAt\n        subject\n        issueContents {\n          content\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation createIssue($input: CreateIssueInput!) {\n    createIssue(input: $input) {\n      ok\n      error\n      result {\n        id\n        createdAt\n        subject\n        issueContents {\n          content\n        }\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query getAllIssues($input: GetAllIssuesInput!) {\n    getAllIssues(input: $input) {\n      ok\n      error\n      totalPage\n      issues {\n        ...IssueParts\n      }\n    }\n  }\n  \n"): (typeof documents)["\n  query getAllIssues($input: GetAllIssuesInput!) {\n    getAllIssues(input: $input) {\n      ok\n      error\n      totalPage\n      issues {\n        ...IssueParts\n      }\n    }\n  }\n  \n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query getIssueAndContentsById($input: GetIssueAndContentsByIdInput!) {\n    getIssueAndContentsById(input: $input) {\n      ok\n      error\n      issue {\n        subject\n        contentCount\n        hasAnswer\n        createdAt\n        author {\n          id\n          name\n        }\n        issueContents {\n          ...IssueContentParts\n        }\n      }\n    }\n  }\n  \n"): (typeof documents)["\n  query getIssueAndContentsById($input: GetIssueAndContentsByIdInput!) {\n    getIssueAndContentsById(input: $input) {\n      ok\n      error\n      issue {\n        subject\n        contentCount\n        hasAnswer\n        createdAt\n        author {\n          id\n          name\n        }\n        issueContents {\n          ...IssueContentParts\n        }\n      }\n    }\n  }\n  \n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation deleteIssue($input: DeleteIssueInput!) {\n    deleteIssue(input: $input) {\n      ok\n      error\n    }\n  }\n"): (typeof documents)["\n  mutation deleteIssue($input: DeleteIssueInput!) {\n    deleteIssue(input: $input) {\n      ok\n      error\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -163,6 +151,18 @@ export function graphql(source: "\n  query getMyComments($input: GetMyCommentsIn
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation deleteComments($input: DeleteCommentsInput!) {\n    deleteComments(input: $input) {\n      ok\n      error\n    }\n  }\n"): (typeof documents)["\n  mutation deleteComments($input: DeleteCommentsInput!) {\n    deleteComments(input: $input) {\n      ok\n      error\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation addIssueContent($input: AddIssueContentInput!) {\n    addIssueContent(input: $input) {\n      ok\n      result {\n        content\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation addIssueContent($input: AddIssueContentInput!) {\n    addIssueContent(input: $input) {\n      ok\n      result {\n        content\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation updateIssueContent($input: UpdateIssueContentInput!) {\n    updateIssueContent(input: $input) {\n      ok\n      error\n      result {\n        id\n        content\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation updateIssueContent($input: UpdateIssueContentInput!) {\n    updateIssueContent(input: $input) {\n      ok\n      error\n      result {\n        id\n        content\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation deleteIssuecontent($input: DeleteIssueContentInput!) {\n    deleteIssueContent(input: $input) {\n      ok\n      error\n    }\n  }\n"): (typeof documents)["\n  mutation deleteIssuecontent($input: DeleteIssueContentInput!) {\n    deleteIssueContent(input: $input) {\n      ok\n      error\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

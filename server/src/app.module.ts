@@ -39,7 +39,6 @@ import { IssueContent } from './issue/entities/issue-content.entity';
       ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
     ScheduleModule.forRoot(),
-    CacheModule.register({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,

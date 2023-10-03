@@ -1,6 +1,8 @@
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { Cache } from 'cache-manager';
 import {
   MAINPAGE_AGENDAS_UNIT,
   PAGINATION_UNIT,
@@ -26,6 +28,15 @@ const mockRepository = () => ({
   findAgendaIdByRecentVoteCount: jest.fn(),
 });
 
+const mockCacheManager = {
+  set: jest.fn(),
+  get: jest.fn(),
+  del: jest.fn(),
+  store: {
+    keys: jest.fn(),
+  },
+};
+
 const USER = {
   id: 1,
   email: 'email',
@@ -45,6 +56,8 @@ describe('AgendaService', () => {
   let agendaRepository: AgendaRepository;
   let opinionRepository: MockRepository<Opinion>;
   let voteRepository: MockRepository<Vote>;
+  let voteCache: Cache;
+
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       imports: [],
@@ -62,12 +75,17 @@ describe('AgendaService', () => {
           provide: getRepositoryToken(Vote),
           useValue: mockRepository(),
         },
+        {
+          provide: CACHE_MANAGER,
+          useValue: mockCacheManager,
+        },
       ],
     }).compile();
     service = module.get<AgendaService>(AgendaService);
     agendaRepository = module.get<AgendaRepository>(AgendaRepository);
     opinionRepository = module.get(getRepositoryToken(Opinion));
     voteRepository = module.get(getRepositoryToken(Vote));
+    voteCache = module.get<Cache>(CACHE_MANAGER);
   });
   afterEach(() => {
     jest.clearAllMocks();
@@ -287,17 +305,31 @@ describe('AgendaService', () => {
   });
 
   describe('onModuleInit', () => {
-    it('should call setMostVotedAgendas()', async () => {
+    it('should call getMostVotedAgendas()', async () => {
       jest
-        .spyOn(service, 'setMostVotedAgendas')
-        .mockImplementationOnce(jest.fn());
+        .spyOn(service, 'getMostVotedAgendas')
+        .mockResolvedValue({ ok: true });
       await service.onModuleInit();
-      expect(service.setMostVotedAgendas).toHaveBeenCalledTimes(1);
+      expect(
+        agendaRepository.findAgendaIdByRecentVoteCount,
+      ).toHaveBeenCalledTimes(1);
+      expect(service.getMostVotedAgendas).toHaveBeenCalledTimes(1);
+    });
+    it('should log fail if result not ok', async () => {
+      const logSpy = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
+      jest
+        .spyOn(service, 'getMostVotedAgendas')
+        .mockResolvedValue({ ok: false });
+      await service.onModuleInit();
+      expect(logSpy).toHaveBeenCalledWith(
+        'Cannot load initial most voted agendas',
+        'AgendaService',
+      );
     });
     it('should call internal error and console log it', async () => {
       const INTERNAL_ERROR = new Error('internal error');
       jest
-        .spyOn(service, 'setMostVotedAgendas')
+        .spyOn(service, 'getMostVotedAgendas')
         .mockRejectedValueOnce(INTERNAL_ERROR);
       const logSpy = jest
         .spyOn(console, 'log')
@@ -309,39 +341,59 @@ describe('AgendaService', () => {
   });
 
   describe('setMostVotedAgendas', () => {
+    let logSpy;
+    beforeEach(() => {
+      logSpy = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
+    });
+
     it('should renew mostVotedAgendas', async () => {
+      jest.spyOn(voteCache.store, 'keys').mockResolvedValue(['1', '2', '3']);
+      jest.spyOn(voteCache, 'get').mockResolvedValueOnce(1);
+      jest.spyOn(voteCache, 'get').mockResolvedValueOnce(2);
+      jest.spyOn(voteCache, 'get').mockResolvedValueOnce(2);
       jest
         .spyOn(service, 'getMostVotedAgendas')
         .mockImplementationOnce(
-          jest.fn().mockResolvedValue({ ok: true, agendas: [{ id: 1 }] }),
+          jest
+            .fn()
+            .mockResolvedValue({ ok: true, agendas: [{ id: 2 }, { id: 1 }] }),
         );
-      const logSpy = jest
-        .spyOn(Logger, 'log')
-        .mockImplementationOnce(jest.fn());
       await service.setMostVotedAgendas();
-      expect(service.getMostVotedAgendas).toHaveBeenCalledTimes(1);
+      expect(voteCache.store.keys).toHaveBeenCalledTimes(1);
+      expect(voteCache.get).toHaveBeenCalledTimes(3);
+      expect(service.getMostVotedAgendas).toHaveBeenCalledWith([2, 1]);
       expect(logSpy).toHaveBeenCalledTimes(1);
       expect(logSpy).toHaveBeenCalledWith(
         'Renew most voted agendas',
         'AgendaService',
       );
-      expect(service.getMostVotedAgendasValue()).toEqual([{ id: 1 }]);
+      expect(service.getMostVotedAgendasValue()).toEqual([
+        { id: 2 },
+        { id: 1 },
+      ]);
+    });
+    it('should log fail if ok is false', async () => {
+      await service.setMostVotedAgendas();
+      expectCalledTimesAndWith(
+        logSpy,
+        2,
+        ['Renew most voted agendas', 'AgendaService'],
+        ['Renew has failed', 'AgendaService'],
+      );
+    });
+    it('should fail on exception', async () => {
+      const e = new Error();
+      jest.spyOn(voteCache.store, 'keys').mockRejectedValue(e);
+      await service.setMostVotedAgendas();
+      expect(logSpy).toHaveBeenCalledWith(e);
     });
   });
 
   describe('getMostVotedAgendas', () => {
     const MOST_VOTED_IDS = [1];
-    beforeEach(() => {
-      jest
-        .spyOn(agendaRepository, 'findAgendaIdByRecentVoteCount')
-        .mockResolvedValue(MOST_VOTED_IDS);
-    });
     it('should fail if agenda not found', async () => {
       jest.spyOn(agendaRepository, 'find').mockResolvedValue(undefined);
-      const result = await service.getMostVotedAgendas();
-      expect(
-        agendaRepository.findAgendaIdByRecentVoteCount,
-      ).toHaveBeenCalledTimes(1);
+      const result = await service.getMostVotedAgendas(MOST_VOTED_IDS);
       expectCalledTimesAndWith(agendaRepository.find, 1, [
         {
           relations: ['opinions', 'author', 'opinions.vote'],
@@ -362,7 +414,7 @@ describe('AgendaService', () => {
       jest
         .spyOn(agendaRepository, 'find')
         .mockImplementationOnce(jest.fn().mockResolvedValue(SUB_AGENDAS));
-      const result = await service.getMostVotedAgendas();
+      const result = await service.getMostVotedAgendas(MOST_VOTED_IDS);
       expectCalledTimesAndWith(
         agendaRepository.find,
         2,
@@ -388,7 +440,7 @@ describe('AgendaService', () => {
     });
     it('should fail on exception', async () => {
       jest.spyOn(agendaRepository, 'find').mockRejectedValue(new Error());
-      const result = await service.getMostVotedAgendas();
+      const result = await service.getMostVotedAgendas(MOST_VOTED_IDS);
       expect(result).toMatchObject({
         ok: false,
         error: 'interal server error',
@@ -518,9 +570,11 @@ describe('AgendaService', () => {
     const VOTE_OP_ID = 1;
     const OTHER_OP_ID = 2;
     const VOTE_ID = 3;
+    const AGENDA_ID = 4;
     it('should fail if opinion not found', async () => {
       opinionRepository.findOne.mockResolvedValue(undefined);
       const result = await service.voteOrUnvote(USER, {
+        agendaId: AGENDA_ID,
         voteOpinionId: VOTE_OP_ID,
         otherOpinionId: OTHER_OP_ID,
       });
@@ -541,6 +595,7 @@ describe('AgendaService', () => {
       voteRepository.findOne.mockResolvedValueOnce(undefined);
       voteRepository.findOne.mockResolvedValueOnce({ id: VOTE_ID });
       const result = await service.voteOrUnvote(USER, {
+        agendaId: AGENDA_ID,
         voteOpinionId: VOTE_OP_ID,
         otherOpinionId: OTHER_OP_ID,
       });
@@ -577,6 +632,7 @@ describe('AgendaService', () => {
       voteRepository.findOne.mockResolvedValueOnce({ id: VOTE_ID });
       voteRepository.findOne.mockResolvedValueOnce(undefined);
       const result = await service.voteOrUnvote(USER, {
+        agendaId: AGENDA_ID,
         voteOpinionId: VOTE_OP_ID,
         otherOpinionId: OTHER_OP_ID,
       });
@@ -606,6 +662,7 @@ describe('AgendaService', () => {
       voteRepository.create.mockReturnValue({ id: VOTE_ID });
       voteRepository.save.mockResolvedValue({ id: VOTE_ID });
       const result = await service.voteOrUnvote(USER, {
+        agendaId: AGENDA_ID,
         voteOpinionId: VOTE_OP_ID,
         otherOpinionId: OTHER_OP_ID,
       });
@@ -638,6 +695,7 @@ describe('AgendaService', () => {
     it('should fail on exception', async () => {
       opinionRepository.findOne.mockRejectedValue(new Error());
       const result = await service.voteOrUnvote(USER, {
+        agendaId: AGENDA_ID,
         voteOpinionId: VOTE_OP_ID,
         otherOpinionId: OTHER_OP_ID,
       });

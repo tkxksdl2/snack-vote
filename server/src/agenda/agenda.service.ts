@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   MAINPAGE_AGENDAS_UNIT,
@@ -44,6 +44,8 @@ import { GetMosteVotedAgendasOutput } from './dtos/get-most-voted-agendas';
 import { Vote } from './entities/vote.entity';
 import { Agenda } from './entities/agenda.entity';
 import { Cron } from '@nestjs/schedule';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class AgendaService implements OnModuleInit {
@@ -53,13 +55,19 @@ export class AgendaService implements OnModuleInit {
     private readonly opinions: Repository<Opinion>,
     @InjectRepository(Vote)
     private readonly votes: Repository<Vote>,
+    @Inject(CACHE_MANAGER)
+    private readonly voteCache: Cache,
   ) {}
 
   private mostVotedAgendas: Agenda[];
 
   async onModuleInit() {
     try {
-      await this.setMostVotedAgendas();
+      const ids = await this.agendas.findAgendaIdByRecentVoteCount();
+      const result = await this.getMostVotedAgendas(ids);
+      if (result.ok) this.mostVotedAgendas = result.agendas;
+      else
+        Logger.log('Cannot load initial most voted agendas', 'AgendaService');
     } catch (e) {
       console.log(e);
     }
@@ -67,11 +75,30 @@ export class AgendaService implements OnModuleInit {
 
   @Cron('*/30 * * * *')
   async setMostVotedAgendas() {
-    const result = await this.getMostVotedAgendas();
-    Logger.log('Renew most voted agendas', 'AgendaService');
-    if (result.ok) {
-      this.mostVotedAgendas = null;
-      this.mostVotedAgendas = result.agendas;
+    try {
+      const cacheKeys = await this.voteCache.store.keys();
+      const resObj: { [key: string]: number } = {};
+      for (const key of cacheKeys) {
+        const agendaId = Number(await this.voteCache.get(key));
+        resObj[agendaId] = resObj[agendaId] ? resObj[agendaId] + 1 : 1;
+      }
+
+      const result = await this.getMostVotedAgendas(
+        Object.entries(resObj)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, MAINPAGE_AGENDAS_UNIT)
+          .map((v) => +v[0]),
+      );
+      Logger.log('Renew most voted agendas', 'AgendaService');
+
+      if (result.ok) {
+        this.mostVotedAgendas = null;
+        this.mostVotedAgendas = result.agendas;
+      } else {
+        Logger.log('Renew has failed', 'AgendaService');
+      }
+    } catch (e) {
+      Logger.log(e);
     }
   }
 
@@ -170,12 +197,13 @@ export class AgendaService implements OnModuleInit {
     }
   }
 
-  async getMostVotedAgendas(): Promise<GetMosteVotedAgendasOutput> {
+  async getMostVotedAgendas(
+    agenaIds: number[],
+  ): Promise<GetMosteVotedAgendasOutput> {
     try {
-      const ids = await this.agendas.findAgendaIdByRecentVoteCount();
       let agendas = await this.agendas.find({
         relations: ['opinions', 'author', 'opinions.vote'],
-        where: { id: In(ids) },
+        where: { id: In(agenaIds) },
       });
       if (!agendas) {
         return { ok: false, error: "Couldn't get agendas" };
@@ -183,7 +211,7 @@ export class AgendaService implements OnModuleInit {
       if (agendas.length < MAINPAGE_AGENDAS_UNIT) {
         const sub = await this.agendas.find({
           relations: ['opinions', 'author', 'opinions.vote'],
-          where: { id: Not(In(ids)) },
+          where: { id: Not(In(agenaIds)) },
           take: MAINPAGE_AGENDAS_UNIT - agendas.length,
           order: { createdAt: 'DESC' },
         });
@@ -265,7 +293,7 @@ export class AgendaService implements OnModuleInit {
 
   async voteOrUnvote(
     authUser: User,
-    { otherOpinionId, voteOpinionId }: VoteOrUnvoteInput,
+    { agendaId, otherOpinionId, voteOpinionId }: VoteOrUnvoteInput,
   ): Promise<VoteOrUnvoteOutput> {
     try {
       const votedOp = await this.opinions.findOne({
@@ -288,6 +316,9 @@ export class AgendaService implements OnModuleInit {
         await this.votes.remove(selectedOpVote);
         votedOp.votedUserCount -= 1;
         await this.opinions.save(votedOp);
+        await this.voteCache.del(
+          `vote:user-${authUser.id}:opinion-${voteOpinionId}`,
+        );
         return {
           ok: true,
           message: '투표를 취소했습니다.',
@@ -301,6 +332,10 @@ export class AgendaService implements OnModuleInit {
       await this.opinions.save(votedOp);
       const newVote = await this.votes.save(
         this.votes.create({ user: authUser, opinion: votedOp }),
+      );
+      this.voteCache.set(
+        `vote:user-${authUser.id}:opinion-${voteOpinionId}`,
+        agendaId,
       );
       return {
         ok: true,

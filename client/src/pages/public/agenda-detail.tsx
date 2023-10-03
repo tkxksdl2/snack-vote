@@ -151,14 +151,16 @@ export const AgendaDetail = () => {
     },
   });
   const onVoteClick = (voteId: number, otherOpinionId: number) => {
-    voteOrUnvote({
-      variables: {
-        input: {
-          voteOpinionId: voteId,
-          otherOpinionId,
+    if (agenda)
+      voteOrUnvote({
+        variables: {
+          input: {
+            agendaId: agenda.id,
+            voteOpinionId: voteId,
+            otherOpinionId,
+          },
         },
-      },
-    });
+      });
   };
   const onReCommentClick = (commentIndex: number) => {
     if (reCommentNum === commentIndex) setReCommentNum(-1);
