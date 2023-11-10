@@ -33,6 +33,10 @@ export class JwtService {
     }
   }
 
+  decode(token: string) {
+    return jwt.decode(token);
+  }
+
   verifyExpiredAccessToken(token: string) {
     return jwt.verify(token, this.options.accessTokenKey, {
       ignoreExpiration: true,

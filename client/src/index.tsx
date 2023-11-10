@@ -7,6 +7,7 @@ import { client } from "./apollo";
 import { BrowserRouter } from "react-router-dom";
 import "./styles/styles.css";
 import { HelmetProvider } from "react-helmet-async";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -16,7 +17,15 @@ root.render(
     <BrowserRouter>
       <ApolloProvider client={client}>
         <HelmetProvider>
-          <App />
+          <GoogleOAuthProvider
+            clientId={
+              process.env.REACT_APP_CLIENT_ID
+                ? process.env.REACT_APP_CLIENT_ID
+                : ""
+            }
+          >
+            <App />
+          </GoogleOAuthProvider>
         </HelmetProvider>
       </ApolloProvider>
     </BrowserRouter>

@@ -93,6 +93,8 @@ jobs:
           context: server/
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/snack-vote-backend:${{ steps.extract-version-tag.outputs.version_tag }}
+          build-args:
+            CLIENT_ID: ${{ secrets.CLIENT_ID}}
 
       - name: frontend build and push image
         uses: docker/build-push-action@v4

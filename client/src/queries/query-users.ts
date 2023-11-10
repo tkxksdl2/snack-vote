@@ -24,6 +24,19 @@ export const LOGIN = gql`
   }
 `;
 
+export const GOOGLE_LOGIN = gql`
+  mutation googleLogin($input: GoogleLoginInput!) {
+    googleLogin(input: $input) {
+      error
+      ok
+      accessToken
+      userId
+      createRequired
+      email
+    }
+  }
+`;
+
 export const CREATE_USER = gql`
   mutation createUser($input: CreateUserInput!) {
     createUser(input: $input) {

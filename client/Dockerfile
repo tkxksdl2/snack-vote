@@ -1,4 +1,5 @@
 FROM node:18 AS build
+ARG CLIENT_ID
 
 RUN echo 'version 1.1'
 WORKDIR /app
@@ -9,7 +10,8 @@ COPY public ./public
 COPY src ./src
 COPY *.config.js ./
 COPY tsconfig.json ./
-RUN npm run build
+RUN REACT_APP_CLIENT_ID=${CLIENT_ID} \ 
+    npm run build
 
 
 FROM nginx

@@ -5,7 +5,12 @@ import { JwtService, TokenType } from 'src/jwt/jwt.service';
 import { Repository } from 'typeorm';
 import { CreateUserInput } from './dtos/create-user.dto';
 import { FindUserByIdOutput } from './dtos/find-one-by-id.dto';
-import { LoginInput, LoginOutput } from './dtos/login.dto';
+import {
+  GoogleLoginInput,
+  GoogleLoginOutput,
+  LoginInput,
+  LoginOutput,
+} from './dtos/login.dto';
 import { Sex, User, UserRole } from './entities/user.entity';
 import { RefreshInput, RefreshOutput } from './dtos/refresh.dto';
 import { DeleteUserInput, DeleteUserOutput } from './dtos/delete-user.dto';
@@ -151,23 +156,49 @@ export class UserService {
       if (!passwordCorrent) {
         return { ok: false, error: 'Password not correct' };
       }
-      const accessToken = this.jwtService.sign(
-        { id: user.id },
-        TokenType.Access,
-      );
-      const refreshToken = this.jwtService.sign(
-        { id: user.id },
-        TokenType.Refresh,
-      );
-      await this.cacheManager.set(
-        `user:${user.id}:refresh-token`,
-        refreshToken,
-        REFRESH_TOKEN_EXP_TIME,
-      );
+      const accessToken = await this.makeTokens(user.id);
+
       return { ok: true, accessToken, userId: user.id };
     } catch {
       return { ok: false, error: "Couldn't get token" };
     }
+  }
+
+  async googleLogin({ token }: GoogleLoginInput): Promise<GoogleLoginOutput> {
+    try {
+      const decoded = this.jwtService.decode(token);
+      if (typeof decoded !== 'object' || !decoded.email)
+        return { ok: false, error: 'Payload does not have email' };
+
+      const user = await this.users.findOne({
+        where: { email: decoded.email },
+        select: ['id', 'password'],
+      });
+      if (!user)
+        return {
+          ok: false,
+          error: 'Create required',
+          createRequired: true,
+          email: decoded.email,
+        };
+
+      const accessToken = await this.makeTokens(user.id);
+
+      return { ok: true, accessToken, userId: user.id };
+    } catch {
+      return { ok: false, error: 'Invalid Token' };
+    }
+  }
+
+  async makeTokens(id: number): Promise<string> {
+    const accessToken = this.jwtService.sign({ id }, TokenType.Access);
+    const refreshToken = this.jwtService.sign({ id }, TokenType.Refresh);
+    await this.cacheManager.set(
+      `user:${id}:refresh-token`,
+      refreshToken,
+      REFRESH_TOKEN_EXP_TIME,
+    );
+    return accessToken;
   }
 
   /** refresh access token if refresh token is valid */

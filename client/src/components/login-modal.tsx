@@ -3,13 +3,19 @@ import {
   OperationVariables,
   useMutation,
 } from "@apollo/client";
+import { GoogleLogin } from "@react-oauth/google";
 import { useForm } from "react-hook-form";
 import Modal from "react-modal";
-import { Link } from "react-router-dom";
-import { accessTokenVar, isLoggedInVar, userIdvar } from "../apollo";
-import { LOCAL_STARAGE_USER_ID, LOCAL_STARAGE_TOKEN } from "../constants";
-import { LoginMutation, LoginMutationVariables, MeQuery } from "../gql/graphql";
-import { LOGIN } from "../queries/query-users";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  GoogleLoginMutation,
+  GoogleLoginMutationVariables,
+  LoginMutation,
+  LoginMutationVariables,
+  MeQuery,
+} from "../gql/graphql";
+import { setLoginVars } from "../hooks/set-login-variables";
+import { GOOGLE_LOGIN, LOGIN } from "../queries/query-users";
 
 const customStyles = {
   overlay: {
@@ -48,6 +54,8 @@ export const LoginModal: React.FC<ILoginModalProps> = ({
   setIsOpen,
   refetch,
 }) => {
+  const navigate = useNavigate();
+
   const closeModal = () => {
     setIsOpen(false);
   };
@@ -55,11 +63,7 @@ export const LoginModal: React.FC<ILoginModalProps> = ({
   const onCompleted = async (data: LoginMutation) => {
     const { ok, error, accessToken, userId } = data.login;
     if (ok && accessToken && userId) {
-      localStorage.setItem(LOCAL_STARAGE_TOKEN, accessToken);
-      localStorage.setItem(LOCAL_STARAGE_USER_ID, userId + "");
-      isLoggedInVar(true);
-      accessTokenVar(accessToken);
-      userIdvar(userId + "");
+      setLoginVars(accessToken, userId);
       await refetch();
       setIsOpen(false);
     } else {
@@ -77,6 +81,27 @@ export const LoginModal: React.FC<ILoginModalProps> = ({
     getValues,
     formState: { errors },
   } = useForm<IForm>();
+
+  const [GoogleLoginMutation] = useMutation<
+    GoogleLoginMutation,
+    GoogleLoginMutationVariables
+  >(GOOGLE_LOGIN, {
+    onCompleted: async (data: GoogleLoginMutation) => {
+      const { ok, error, accessToken, userId, createRequired, email } =
+        data.googleLogin;
+      if (ok && accessToken && userId) {
+        setLoginVars(accessToken, userId);
+        await refetch();
+        setIsOpen(false);
+      } else if (createRequired && email) {
+        alert("추가 정보를 입력해주세요!");
+        closeModal();
+        navigate("create-user", { state: { email } });
+      } else {
+        console.log(error);
+      }
+    },
+  });
 
   const onSubmit = () => {
     const { email, password } = getValues();
@@ -141,11 +166,33 @@ export const LoginModal: React.FC<ILoginModalProps> = ({
           </div>
         </form>
         <div className="text-center mt-4">
-          <Link to={"/create-user/"} onClick={closeModal}>
-            <span className=" text-indigo-900 font-semibold">회원가입</span>
-          </Link>
-          /
-          <span className=" text-indigo-900 font-semibold"> 비밀번호 찾기</span>
+          <div>
+            <Link to={"/create-user/"} onClick={closeModal}>
+              <span className=" text-indigo-900 font-semibold">회원가입</span>
+            </Link>
+            /
+            <span className=" text-indigo-900 font-semibold">
+              {" "}
+              비밀번호 찾기
+            </span>
+          </div>
+          <div className="flex justify-center my-2">
+            <GoogleLogin
+              width="300"
+              onSuccess={(credentialResponse) => {
+                if (credentialResponse && credentialResponse.credential)
+                  GoogleLoginMutation({
+                    variables: {
+                      input: { token: credentialResponse.credential },
+                    },
+                  });
+                else alert("인증이 실패했습니다.");
+              }}
+              onError={() => {
+                console.log("Failed");
+              }}
+            />
+          </div>
         </div>
       </div>
     </Modal>

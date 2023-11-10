@@ -2,6 +2,7 @@
 **/*/node_modules/
 **/*/dist
 **/*.dev
+**/*.env
 
 ## testing
 **/.env.test

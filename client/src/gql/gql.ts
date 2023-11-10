@@ -41,6 +41,7 @@ const documents = {
     "\n  mutation deleteIssuecontent($input: DeleteIssueContentInput!) {\n    deleteIssueContent(input: $input) {\n      ok\n      error\n    }\n  }\n": types.DeleteIssuecontentDocument,
     "\n  query me {\n    me {\n      id\n      email\n      name\n      role\n      sex\n      birth\n    }\n  }\n": types.MeDocument,
     "\n  mutation login($input: LoginInput!) {\n    login(input: $input) {\n      error\n      ok\n      accessToken\n      userId\n    }\n  }\n": types.LoginDocument,
+    "\n  mutation googleLogin($input: GoogleLoginInput!) {\n    googleLogin(input: $input) {\n      error\n      ok\n      accessToken\n      userId\n      createRequired\n      email\n    }\n  }\n": types.GoogleLoginDocument,
     "\n  mutation createUser($input: CreateUserInput!) {\n    createUser(input: $input) {\n      ok\n      error\n    }\n  }\n": types.CreateUserDocument,
     "\n  mutation updateUser($input: UpdateUserInput!) {\n    updateUser(input: $input) {\n      ok\n      error\n    }\n  }\n": types.UpdateUserDocument,
 };
@@ -171,6 +172,10 @@ export function graphql(source: "\n  query me {\n    me {\n      id\n      email
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation login($input: LoginInput!) {\n    login(input: $input) {\n      error\n      ok\n      accessToken\n      userId\n    }\n  }\n"): (typeof documents)["\n  mutation login($input: LoginInput!) {\n    login(input: $input) {\n      error\n      ok\n      accessToken\n      userId\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation googleLogin($input: GoogleLoginInput!) {\n    googleLogin(input: $input) {\n      error\n      ok\n      accessToken\n      userId\n      createRequired\n      email\n    }\n  }\n"): (typeof documents)["\n  mutation googleLogin($input: GoogleLoginInput!) {\n    googleLogin(input: $input) {\n      error\n      ok\n      accessToken\n      userId\n      createRequired\n      email\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

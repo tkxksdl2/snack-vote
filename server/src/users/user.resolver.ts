@@ -4,7 +4,12 @@ import { Role } from 'src/auth/role.decorator';
 import { CommonOutput } from 'src/common/dtos/output.dto';
 import { CreateUserInput } from './dtos/create-user.dto';
 import { DeleteUserInput, DeleteUserOutput } from './dtos/delete-user.dto';
-import { LoginInput, LoginOutput } from './dtos/login.dto';
+import {
+  GoogleLoginInput,
+  GoogleLoginOutput,
+  LoginInput,
+  LoginOutput,
+} from './dtos/login.dto';
 import { RefreshInput, RefreshOutput } from './dtos/refresh.dto';
 import { UpdateUserInput, UpdateUserOutput } from './dtos/update-user.dto';
 import { User } from './entities/user.entity';
@@ -23,6 +28,13 @@ export class UserResolver {
   @Mutation((returns) => LoginOutput)
   login(@Args('input') loginInput: LoginInput): Promise<LoginOutput> {
     return this.userService.login(loginInput);
+  }
+
+  @Mutation((returns) => GoogleLoginOutput)
+  googleLogin(
+    @Args('input') googleLoginInput: GoogleLoginInput,
+  ): Promise<GoogleLoginOutput> {
+    return this.userService.googleLogin(googleLoginInput);
   }
 
   @Mutation((returns) => RefreshOutput)

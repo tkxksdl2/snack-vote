@@ -2,7 +2,7 @@ import { useMutation } from "@apollo/client";
 import { useState } from "react";
 import DatePicker from "react-datepicker";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   CreateUserMutation,
   CreateUserMutationVariables,
@@ -24,6 +24,9 @@ interface Iform {
 
 export const CreateUser = () => {
   const navigate = useNavigate();
+  const { state } = useLocation();
+  const defaultEmail = state?.email;
+
   const [birth, setBirth] = useState(new Date());
   const onCompleted = (data: CreateUserMutation) => {
     const {
@@ -85,8 +88,10 @@ export const CreateUser = () => {
                 message: "올바른 형식이 아닙니다",
               },
             })}
+            defaultValue={defaultEmail ? defaultEmail : ""}
+            readOnly={!!defaultEmail}
             placeholder="Email"
-            className="input"
+            className={`input ${defaultEmail ? "bg-gray-200 fo" : ""}`}
             type="email"
           ></input>
           <div className="mt-3 mb-2 semibold">NickName</div>
