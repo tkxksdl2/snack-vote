@@ -22,9 +22,11 @@ deploy - docker-stack, aws-EC2, Route53
 
 현재 테스트 배포 진행중 - <https://snackvote.org>
 
-# 주요 기능
+# 주요 구현사항
 
 - refresh token, role 기반 인증
+
+- google OAuth2.0 login
 
 - 이진 투표 안건 작성 및 투표 기능, 투표 인원의 성별, 나이에 관한 통계 제공
 
@@ -34,7 +36,7 @@ deploy - docker-stack, aws-EC2, Route53
 
 - 최근 최다 투표 발생 안건 메인 표시
 
-- markdown 활용 가능한 issue(건의사항) 게시판
+- markdown 활용 issue(건의사항) 게시판
 
 - nginx 컨테이너를 이용한 https certification
 
@@ -65,6 +67,18 @@ Architecture
   그리고 인기글을 추출하는 쿼리를 변경해 최근 발생한 투표를 일부 집계한 후, 총 투표수 순위를 매겨서 상위 게시글을 가져오도록 변경했습니다.
 
   이러한 변경에 따라 쿼리의 부하가 많아졌으므로 사용자가 직접 쿼리를 실행하지 않고, 결과값을 서버에 저장하고 있다가 사용자는 값만을 받아오도록 변경했습니다. 실제 쿼리는 ScheduleModule을 이용해서 일정시간마다 실행되어 갱신합니다.
+
+- ## Google OAuth2.0 login
+
+  google OAuth를 이용한 로그인을 구현했습니다. 초기엔 일반적인 redirect url을 사용한 OAuth를 사용하려 했으나, 별도의 api 권한은 필요하지 않고 오직 사용자 profile 정보만을 필요로 하기에 더 간소화된 *Google 계정으로 Login*을 사용했습니다.
+
+  아래는 해당 과정의 시퀀스 다이어그램입니다.
+
+  <img src="images\login-for-google-seq.png"  width="600" height="500">
+
+  google로부터 받은 credential을 decode한 후 user를 찾는다면 `access token`을 반환하고, 그렇지 않는다면 `createRquired:true`를 반환합니다.
+
+  그러한 경우 client 부분에서는 추가 정보 입력을 요구하는 페이지로 redirect됩니다.
 
 - ## Github Actions 이용 CI/CD 개선
 
@@ -100,9 +114,3 @@ Architecture
   내부로는 EC2, 외부로는 로컬 컴퓨터 IP만 열어두었기에 mysql workbench를 이용해 DB를 직접적으로 관리할 수 있고, EC2 저장소도 50%대로 여유있게 되었습니다.
 
 ---
-
-## Todo
-
-Oauth 적용하기
-
-이미지 관련 기능 추가
