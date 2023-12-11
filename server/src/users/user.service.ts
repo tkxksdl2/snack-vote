@@ -95,8 +95,6 @@ export class UserService {
           error: "You don't have permission to update this user",
         };
       }
-      // if (email) user.email = email;
-      // if (profileImage) user.profileImage = profileImage;
       if (name && user.name !== name) {
         const nameExist = await this.users.findOne({ where: { name } });
         if (nameExist) {
