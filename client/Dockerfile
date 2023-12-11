@@ -6,8 +6,6 @@ WORKDIR /app
 COPY package* ./
 RUN npm install
 
-RUN echo CLIENT_ID
-
 COPY public ./public
 COPY src ./src
 COPY *.config.js ./

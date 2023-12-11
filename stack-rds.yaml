@@ -40,7 +40,7 @@ services:
         max-file: "10"
 
   snack-vote-frontend:
-    image: whalebro/snack-vote-frontend:1.5
+    image: whalebro/snack-vote-frontend:1.51
     deploy:
       placement:
         constraints:
