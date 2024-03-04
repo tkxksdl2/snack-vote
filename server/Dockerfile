@@ -1,7 +1,5 @@
 FROM node:18
 
-RUN echo 'version 1.1 fixed'
-
 WORKDIR /app
 COPY . .
 RUN npm install
