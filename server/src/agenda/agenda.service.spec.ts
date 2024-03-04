@@ -627,6 +627,7 @@ describe('AgendaService', () => {
     it('should unvote to opinion', async () => {
       const VOTED_USER_COUNT = 1;
       opinionRepository.findOne.mockResolvedValueOnce({
+        id: VOTE_OP_ID,
         votedUserCount: VOTED_USER_COUNT,
       });
       voteRepository.findOne.mockResolvedValueOnce({ id: VOTE_ID });
@@ -639,6 +640,7 @@ describe('AgendaService', () => {
       expectCalledTimesAndWith(voteRepository.remove, 1, [{ id: VOTE_ID }]);
       expectCalledTimesAndWith(opinionRepository.save, 1, [
         {
+          id: VOTE_OP_ID,
           votedUserCount: VOTED_USER_COUNT - 1,
         },
       ]);
@@ -654,6 +656,7 @@ describe('AgendaService', () => {
     it('should vote to opinion', async () => {
       const VOTED_USER_COUNT = 0;
       opinionRepository.findOne.mockResolvedValueOnce({
+        id: VOTE_OP_ID,
         votedUserCount: VOTED_USER_COUNT,
         opinionType: true,
       });
@@ -661,13 +664,16 @@ describe('AgendaService', () => {
       voteRepository.findOne.mockResolvedValueOnce(undefined);
       voteRepository.create.mockReturnValue({ id: VOTE_ID });
       voteRepository.save.mockResolvedValue({ id: VOTE_ID });
+
       const result = await service.voteOrUnvote(USER, {
         agendaId: AGENDA_ID,
         voteOpinionId: VOTE_OP_ID,
         otherOpinionId: OTHER_OP_ID,
       });
+
       expectCalledTimesAndWith(opinionRepository.save, 1, [
         {
+          id: VOTE_OP_ID,
           votedUserCount: VOTED_USER_COUNT + 1,
           opinionType: true,
         },
@@ -676,6 +682,7 @@ describe('AgendaService', () => {
         {
           user: USER,
           opinion: {
+            id: VOTE_OP_ID,
             votedUserCount: VOTED_USER_COUNT + 1,
             opinionType: true,
           },

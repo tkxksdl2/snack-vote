@@ -46,6 +46,7 @@ import { Agenda } from './entities/agenda.entity';
 import { Cron } from '@nestjs/schedule';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { Transactional } from 'nestjs-transaction';
 
 @Injectable()
 export class AgendaService implements OnModuleInit {
@@ -291,6 +292,7 @@ export class AgendaService implements OnModuleInit {
     }
   }
 
+  @Transactional()
   async voteOrUnvote(
     authUser: User,
     { agendaId, otherOpinionId, voteOpinionId }: VoteOrUnvoteInput,
@@ -299,55 +301,79 @@ export class AgendaService implements OnModuleInit {
       const votedOp = await this.opinions.findOne({
         where: { id: voteOpinionId },
       });
+
       if (!votedOp) {
         return { ok: false, error: '투표하려는 의견은 존재하지 않습니다.' };
-      }
+      }   
+
       const selectedOpVote = await this.votes.findOne({
         where: { user: { id: authUser.id }, opinion: { id: voteOpinionId } },
       });
       const otherOpVote = await this.votes.findOne({
         where: { user: { id: authUser.id }, opinion: { id: otherOpinionId } },
       });
+
       if (otherOpVote) {
         return { ok: false, error: '이미 다른 의견에 투표했습니다.' };
       }
+
       if (selectedOpVote) {
-        const voteId = selectedOpVote.id;
-        await this.votes.remove(selectedOpVote);
-        votedOp.votedUserCount -= 1;
-        await this.opinions.save(votedOp);
-        await this.voteCache.del(
-          `vote:user-${authUser.id}:opinion-${voteOpinionId}`,
-        );
-        return {
-          ok: true,
-          message: '투표를 취소했습니다.',
-          voteCount: votedOp.votedUserCount,
-          opinionId: voteOpinionId,
-          voteId,
-          resultType: 'unvote',
-        };
+        return await this.unvote(authUser, selectedOpVote, votedOp);
+      } else {
+        return await this.vote(authUser, votedOp, agendaId);
       }
-      votedOp.votedUserCount += 1;
-      await this.opinions.save(votedOp);
-      const newVote = await this.votes.save(
-        this.votes.create({ user: authUser, opinion: votedOp }),
-      );
-      this.voteCache.set(
-        `vote:user-${authUser.id}:opinion-${voteOpinionId}`,
-        agendaId,
-      );
-      return {
-        ok: true,
-        message: '투표에 성공했습니다.',
-        voteCount: votedOp.votedUserCount,
-        opinionId: voteOpinionId,
-        voteId: newVote.id,
-        opinionType: votedOp.opinionType,
-        resultType: 'vote',
-      };
     } catch {
       return { ok: false, error: "Couldn't vote to opinion" };
     }
+  }
+
+  async unvote(
+    authUser: User,
+    selectedOpVote: Vote,
+    votedOp: Opinion,
+  ): Promise<VoteOrUnvoteOutput> {
+    await this.votes.remove(selectedOpVote);
+
+    votedOp.votedUserCount -= 1;
+    await this.opinions.save(votedOp);
+
+    await this.voteCache.del(`vote:user-${authUser.id}:opinion-${votedOp.id}`);
+
+    return {
+      ok: true,
+      message: '투표를 취소했습니다.',
+      voteCount: votedOp.votedUserCount,
+      opinionId: votedOp.id,
+      voteId: selectedOpVote.id,
+      resultType: 'unvote',
+    };
+  }
+
+  async vote(
+    authUser: User,
+    votedOp: Opinion,
+    agendaId: number,
+  ): Promise<VoteOrUnvoteOutput> {
+    votedOp.votedUserCount += 1;
+    await this.opinions.save(votedOp);
+
+    const newVote = await this.votes.save(
+      this.votes.create({ user: authUser, opinion: votedOp }),
+    );
+
+    this.voteCache.set(
+      `vote:user-${authUser.id}:opinion-${votedOp.id}`,
+      agendaId,
+    );
+
+    return {
+      ok: true,
+      message: '투표에 성공했습니다.',
+      voteCount: votedOp.votedUserCount,
+      opinionId: votedOp.id,
+      voteId: newVote.id,
+      opinionType: votedOp.opinionType,
+      resultType: 'vote',
+    };
   }
 }

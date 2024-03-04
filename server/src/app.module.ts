@@ -16,12 +16,10 @@ import { UploadModule } from './upload/upload.module';
 import { AppLoggerMiddleware } from './applogger/app-logger-middleware';
 import { Vote } from './agenda/entities/vote.entity';
 import { ScheduleModule } from '@nestjs/schedule';
-import { CacheModule } from '@nestjs/cache-manager';
-import type { RedisClientOptions } from 'redis';
-import { redisStore } from 'cache-manager-redis-yet';
 import { IssueModule } from './issue/issue.module';
 import { Issue } from './issue/entities/issue.entity';
 import { IssueContent } from './issue/entities/issue-content.entity';
+import { TransactionModule } from 'nestjs-transaction';
 
 @Module({
   imports: [
@@ -49,6 +47,7 @@ import { IssueContent } from './issue/entities/issue-content.entity';
       synchronize: true,
       entities: [User, Agenda, Opinion, Vote, Comments, Issue, IssueContent],
     }),
+    TransactionModule.forRoot(),
     JwtModule.forRoot({
       accessTokenKey: process.env.JWT_PRIVATE_KEY,
       accessTokenExpTime: process.env.JWT_PRIVATE_KEY_EXP_TIME,
