@@ -1,9 +1,9 @@
-name: Server Test
+name: Server Test and Build
 on:
   push:
     branches:
       - main
-      - vote
+      - test
   pull_request:
     types: [closed]
 jobs:
@@ -62,7 +62,9 @@ jobs:
   Build-and-push:
     runs-on: ubuntu-latest
     needs: server-test
-    if: github.ref_name == 'main' && contains(github.event.head_commit.message, 'version')
+    if: |
+      (github.ref_name == 'main' && contains(github.event.head_commit.message, 'version')) 
+      || (github.ref_name == 'test' && contains(github.event.head_commit.message, 'version:test-'))
     steps:
       - uses: actions/checkout@v3
 
@@ -73,7 +75,7 @@ jobs:
           commit_message="$(git log --format=%B -n 1)"
 
           # Extract the version tag using a regular expression
-          version_tag="$(echo "$commit_message" | grep -o -E 'version:[0-9]+\.[0-9]+')"
+          version_tag="$(echo "$commit_message" | grep -o -E 'version:(test-)?[0-9]+\.[0-9]+')"
 
           # Remove the "version:" prefix
           version_tag="${version_tag#version:}"
