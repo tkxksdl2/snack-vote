@@ -1,5 +1,7 @@
 FROM node:18
 
+# Test-Image version 1.0
+
 WORKDIR /app
 COPY . .
 RUN npm install
