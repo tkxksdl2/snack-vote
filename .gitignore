@@ -9,6 +9,8 @@
 **/test-queries.txt
 **/media/image/**
 
+k6
+
 # IDE
 /.idea
 /.awcache
