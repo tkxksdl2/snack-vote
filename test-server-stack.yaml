@@ -1,0 +1,61 @@
+services:
+  snack-vote-backend:
+    image: whalebro/snack-vote-backend:test-1.1
+    ports:
+      - "4000:4000"
+    networks:
+      - snack-vote-network
+    environment:
+      DB_HOST_FILE: /run/secrets/DB_HOST
+      DB_PORT: 3306
+      DB_NAME: snackvote
+      DB_USERNAME_FILE: /run/secrets/DB_USERNAME
+      DB_PASSWORD_FILE: /run/secrets/DB_PASSWORD
+      JWT_PRIVATE_KEY_FILE: /run/secrets/JWT_PRIVATE_KEY
+      JWT_PRIVATE_KEY_EXP_TIME_FILE: /run/secrets/JWT_PRIVATE_KEY_EXP_TIME
+      JWT_REFRESH_KEY_FILE: /run/secrets/JWT_REFRESH_KEY
+      JWT_REFRESH_KEY_EXP_TIME_FILE: /run/secrets/JWT_REFRESH_KEY_EXP_TIME
+      ROOT_EMAIL_FILE: /run/secrets/ROOT_EMAIL_FILE
+      ROOT_PASSWORD_FILE: /run/secrets/ROOT_PASSWORD_FILE
+      ROOT_NAME_FILE: /run/secrets/ROOT_NAME_FILE
+    secrets:
+      - DB_HOST
+      - DB_USERNAME
+      - DB_PASSWORD
+      - JWT_PRIVATE_KEY
+      - JWT_PRIVATE_KEY_EXP_TIME
+      - JWT_REFRESH_KEY
+      - JWT_REFRESH_KEY_EXP_TIME
+      - ROOT_EMAIL
+      - ROOT_PASSWORD
+      - ROOT_NAME
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
+
+networks:
+  snack-vote-network:
+
+secrets:
+  DB_HOST:
+    external: true
+  DB_USERNAME:
+    external: true
+  DB_PASSWORD:
+    external: true
+  JWT_PRIVATE_KEY:
+    external: true
+  JWT_PRIVATE_KEY_EXP_TIME:
+    external: true
+  JWT_REFRESH_KEY:
+    external: true
+  JWT_REFRESH_KEY_EXP_TIME:
+    external: true
+  ROOT_EMAIL:
+    external: true
+  ROOT_PASSWORD:
+    external: true
+  ROOT_NAME:
+    external: true

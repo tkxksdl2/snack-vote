@@ -46,6 +46,7 @@ import { TransactionModule } from 'nestjs-transaction';
       database: process.env.DB_NAME,
       synchronize: true,
       entities: [User, Agenda, Opinion, Vote, Comments, Issue, IssueContent],
+      poolSize: 200,
     }),
     TransactionModule.forRoot(),
     JwtModule.forRoot({
