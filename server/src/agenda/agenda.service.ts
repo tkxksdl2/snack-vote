@@ -55,6 +55,10 @@ import {
   GetAgendaAndStatsByIdOutput,
 } from './dtos/get-agenda-and-stats-by-id.dto';
 import { AgendaDetailSummaryFactory } from './classes/agenda-detail-summary-factory';
+import {
+  FindAgendaAndAllVotesByIdInput,
+  FindAgendaAndAllVotesByIdOutput,
+} from './dtos/find-agenda-and-all-votes-by-id.dto';
 
 @Injectable()
 export class AgendaService implements OnModuleInit {
@@ -128,7 +132,7 @@ export class AgendaService implements OnModuleInit {
 
       if (!summary) {
         // 캐시 미스로 큰 쿼리 실행
-        const result = await this.findAgendaById({ id });
+        const result = await this.findAgendaAndAllVotesById({ id });
         if (!result.ok) return result;
 
         const factory = new AgendaDetailSummaryFactory(result.agenda, userId);
@@ -157,6 +161,14 @@ export class AgendaService implements OnModuleInit {
   async findAgendaById({
     id,
   }: FindAgendaByIdInput): Promise<FindAgendaByIdOutput> {
+    const agenda = await this.agendas.findOne({ where: { id } });
+    if (agenda) return { ok: true, agenda };
+    else return { ok: false, error: "couldn't find agenda" };
+  }
+
+  async findAgendaAndAllVotesById({
+    id,
+  }: FindAgendaAndAllVotesByIdInput): Promise<FindAgendaAndAllVotesByIdOutput> {
     try {
       const agenda = await this.agendas.findOne({
         where: { id },

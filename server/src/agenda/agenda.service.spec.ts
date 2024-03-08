@@ -123,7 +123,7 @@ describe('AgendaService', () => {
     it('should cache miss and make AgendaSummary and return', async () => {
       jest.spyOn(lruCache, 'get').mockReturnValueOnce(undefined);
       jest
-        .spyOn(service, 'findAgendaById')
+        .spyOn(service, 'findAgendaAndAllVotesById')
         .mockImplementationOnce(
           jest.fn().mockResolvedValue({ ok: true, agenda: 'AGENDA' }),
         );
@@ -154,11 +154,11 @@ describe('AgendaService', () => {
     });
   });
 
-  describe('findAgendaById', () => {
+  describe('findAgendaAndAllVotesById', () => {
     const AGENDA_ID = 1;
     it('should fail if agenda not found', async () => {
       jest.spyOn(agendaRepository, 'findOne').mockResolvedValue(undefined);
-      const result = await service.findAgendaById({ id: AGENDA_ID });
+      const result = await service.findAgendaAndAllVotesById({ id: AGENDA_ID });
       expectCalledTimesAndWith(agendaRepository.findOne, 1, [
         {
           where: { id: AGENDA_ID },
@@ -179,12 +179,12 @@ describe('AgendaService', () => {
       jest
         .spyOn(agendaRepository, 'findOne')
         .mockImplementation(jest.fn().mockResolvedValue({ id: AGENDA_ID }));
-      const result = await service.findAgendaById({ id: AGENDA_ID });
+      const result = await service.findAgendaAndAllVotesById({ id: AGENDA_ID });
       expect(result).toMatchObject({ ok: true, agenda: { id: AGENDA_ID } });
     });
     it('should fail on exception', async () => {
       jest.spyOn(agendaRepository, 'findOne').mockRejectedValue(new Error());
-      const result = await service.findAgendaById({ id: AGENDA_ID });
+      const result = await service.findAgendaAndAllVotesById({ id: AGENDA_ID });
       expect(result).toMatchObject({
         ok: false,
         error: "Couldn't find agenda",

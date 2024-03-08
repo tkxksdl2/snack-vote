@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AgendaService } from 'src/agenda/agenda.service';
 import { PAGINATION_UNIT_COMMENTS } from 'src/common/common.constants';
@@ -76,11 +76,9 @@ export class CommentsService {
     { agendaId, page }: GetCommentsByAgendaInput,
   ): Promise<GetCommentsByAgendaOutput> {
     try {
-      const { ok, error } = await this.agendaService.findAgendaById({
-        id: agendaId,
-      });
-      if (!ok) {
-        return { ok, error };
+      const result = await this.agendaService.findAgendaById({ id: agendaId });
+      if (!result.ok) {
+        return result;
       }
       const [comments, count] = await this.comments.findAndCount({
         relations: { author: true },
@@ -90,6 +88,7 @@ export class CommentsService {
         skip: PAGINATION_UNIT_COMMENTS * (page - 1),
         withDeleted: true,
       });
+
       if (!user || user.role !== UserRole.Admin) {
         comments.forEach((comment) => {
           if (comment.deletedAt) {
