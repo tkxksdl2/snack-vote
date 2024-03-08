@@ -1,6 +1,7 @@
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { LRUCacheModule } from 'src/cache/LRU-cache.module';
 import { AgendaRepository } from './agenda.repository';
 import { AgendaResolver } from './agenda.resolver';
 import { AgendaService } from './agenda.service';
@@ -12,6 +13,7 @@ import { Vote } from './entities/vote.entity';
   imports: [
     TypeOrmModule.forFeature([Agenda, Opinion, Vote]),
     CacheModule.register({ max: 1000 }),
+    LRUCacheModule,
   ],
   providers: [AgendaService, AgendaResolver, AgendaRepository],
   exports: [AgendaService],

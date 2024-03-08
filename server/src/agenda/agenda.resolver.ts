@@ -36,6 +36,10 @@ import {
   VoteOrUnvoteOutput,
 } from './dtos/vote-or-unvote.dto';
 import { Agenda } from './entities/agenda.entity';
+import {
+  GetAgendaAndStatsByIdInput,
+  GetAgendaAndStatsByIdOutput,
+} from './dtos/get-agenda-and-stats-by-id.dto';
 
 @Resolver((of) => Agenda)
 export class AgendaResolver {
@@ -60,6 +64,13 @@ export class AgendaResolver {
     return this.agendaService.searchAgendasByCategory(
       searchAgendasByCategoryInput,
     );
+  }
+
+  @Query((returns) => GetAgendaAndStatsByIdOutput)
+  getAgendaAndStatsById(
+    @Args('input') getAgendaAndStatsByIdInput: GetAgendaAndStatsByIdInput,
+  ): Promise<GetAgendaAndStatsByIdOutput> {
+    return this.agendaService.getAgendaAndStatsById(getAgendaAndStatsByIdInput);
   }
 
   @Query((returns) => [Agenda])

@@ -2,13 +2,10 @@ import { gql, useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { PercentageBar } from "../../components/agenda-snippets/percentage-bar";
-import {
-  AGENDA_DETAIL_FRAGMENT,
-  COMMENT_FRAGMENT,
-} from "../../queries/fragments";
+import { AGENDA_FRAGMENT, COMMENT_FRAGMENT } from "../../queries/fragments";
 import { getFragmentData } from "../../gql";
 import {
-  AgendaDetailPartsFragment,
+  AgendaPartsFragment,
   CommentPartsFragment,
   DeleteAgendaMutation,
   DeleteAgendaMutationVariables,
@@ -16,6 +13,7 @@ import {
   DeleteCommentsMutationVariables,
   GetAgendaAndCommentsQuery,
   GetAgendaAndCommentsQueryVariables,
+  Sex,
   UserRole,
   VoteOrUnvoteMutation,
   VoteOrUnvoteMutationVariables,
@@ -67,12 +65,13 @@ export const AgendaDetail = () => {
   >(GET_AGENDA_AND_COMMENTS, {
     variables: {
       commentsInput: { page: commentPage, agendaId: +id },
-      agendaInput: { id: +id },
+      agendaInput: { id: +id, userId: meData?.me.id },
     },
   });
-  const agenda = getFragmentData<AgendaDetailPartsFragment>(
-    AGENDA_DETAIL_FRAGMENT,
-    data?.findAgendaById.agenda
+
+  const agenda = getFragmentData<AgendaPartsFragment>(
+    AGENDA_FRAGMENT,
+    data?.getAgendaAndStatsById.agendaDetail?.agenda
   );
   const comments = getFragmentData<CommentPartsFragment>(
     COMMENT_FRAGMENT,
@@ -80,39 +79,35 @@ export const AgendaDetail = () => {
   );
 
   useEffect(() => {
-    if (agenda?.opinions[0]) {
-      let has = false;
-      for (const vote of agenda?.opinions[0].vote) {
-        if (vote.user.id === meData?.me.id) has = true;
-      }
-      if (has && voteState.voteAHasMe === false)
-        setVoteState({ ...voteState, voteAHasMe: true });
-      else if (!has && voteState.voteAHasMe === true)
-        setVoteState({ ...voteState, voteAHasMe: false });
+    const isUserVotedOpinion = data?.getAgendaAndStatsById.isUserVotedOpinion;
+    if (isUserVotedOpinion) {
+      setVoteState({
+        voteAHasMe: isUserVotedOpinion[0],
+        voteBHasMe: isUserVotedOpinion[1],
+      });
     }
-    if (agenda?.opinions[1].vote) {
-      let has = false;
-      for (const vote of agenda?.opinions[1].vote) {
-        if (vote.user.id === meData?.me.id) has = true;
-      }
-      if (has && voteState.voteBHasMe === false)
-        setVoteState({ ...voteState, voteBHasMe: true });
-      else if (!has && voteState.voteBHasMe === true)
-        setVoteState({ ...voteState, voteBHasMe: false });
-    }
-  }, [agenda, meData]);
+  }, [data?.getAgendaAndStatsById.isUserVotedOpinion]);
 
   const voteCntA = agenda ? agenda.opinions[0].votedUserCount : 0;
   const voteCntB = agenda ? agenda.opinions[1].votedUserCount : 0;
   let totalCnt = voteCntA + voteCntB;
-  const agendaAuthor = data?.findAgendaById.agenda?.author;
+
+  const agendaAuthor = agenda?.author;
+
   const [voteOrUnvote, { loading: voteLoading }] = useMutation<
     VoteOrUnvoteMutation,
     VoteOrUnvoteMutationVariables
   >(VOTE_OR_UNVOTE, {
-    onCompleted: (data) => {
-      const { ok, error, message, voteCount, voteId, opinionId, resultType } =
-        data.voteOrUnvote;
+    onCompleted: (voteData) => {
+      const {
+        ok,
+        error,
+        message,
+        voteCount,
+        opinionType,
+        opinionId,
+        resultType,
+      } = voteData.voteOrUnvote;
       if (ok) {
         cache.modify({
           id: `Opinion:${opinionId}`,
@@ -120,36 +115,82 @@ export const AgendaDetail = () => {
             votedUserCount(_) {
               return voteCount;
             },
-            vote(votes) {
-              let newVotes = [...votes];
-              if (resultType === "vote") {
-                newVotes.push({
-                  __typename: "Vote",
-                  id: voteId,
-                  user: {
-                    __typename: "User",
-                    id: meData?.me.id,
-                    sex: meData?.me.sex,
-                    birth: meData?.me.birth,
-                  },
-                });
-              } else {
-                newVotes = newVotes.filter((v) => {
-                  if (v.id) return v.id !== voteId;
-                  else if (v.__ref) return v.__ref !== `Vote:${voteId}`;
-                });
-                setVoteState({ voteAHasMe: false, voteBHasMe: false });
-              }
-              return newVotes;
-            },
           },
         });
+
+        if (resultType === "vote") {
+          if (opinionType) setVoteState({ ...voteState, voteAHasMe: true });
+          else setVoteState({ ...voteState, voteBHasMe: true });
+        } else {
+          if (opinionType) setVoteState({ ...voteState, voteAHasMe: false });
+          else setVoteState({ ...voteState, voteBHasMe: false });
+        }
+
+        // 통계 캐시 갱신
+        const arr =
+          data?.getAgendaAndStatsById.agendaDetail?.agendaChartStatsArr;
+        if (!arr) return;
+
+        const datas = [
+          {
+            sexData: [...arr[0].sexData],
+            ageData: [...arr[0].ageData],
+          },
+          {
+            sexData: [...arr[1].sexData],
+            ageData: [...arr[1].ageData],
+          },
+        ];
+
+        const sex = meData?.me.sex;
+        const age =
+          new Date().getFullYear() - new Date(meData?.me.birth).getFullYear();
+
+        const adder = resultType === "vote" ? 1 : -1;
+        const opIdx = opinionType ? 0 : 1;
+        const sexIdx = sex === Sex.Male ? 0 : 1;
+        const ageIdx = ageToIndex(age);
+
+        datas[opIdx].ageData[ageIdx] += adder;
+        datas[opIdx].sexData[sexIdx] += adder;
+
+        cache.updateQuery(
+          {
+            query: GET_AGENDA_AND_COMMENTS,
+            variables: {
+              commentsInput: { page: commentPage, agendaId: +id },
+              agendaInput: { id: +id, userId: meData?.me.id },
+            },
+          },
+          (data) => {
+            return {
+              ...data,
+              getAgendaAndStatsById: {
+                ...data.getAgendaAndStatsById,
+                agendaDetail: {
+                  ...data.getAgendaAndStatsById.agendaDetail,
+                  agendaChartStatsArr: datas,
+                },
+              },
+            };
+          }
+        );
+
         alert(message);
       } else if (error) {
         alert(error);
       }
     },
   });
+
+  const ageToIndex = (age: number): number => {
+    if (age < 20) return 0;
+    else if (age < 30) return 1;
+    else if (age < 40) return 2;
+    else if (age < 50) return 3;
+    return 4;
+  };
+
   const onVoteClick = (voteId: number, otherOpinionId: number) => {
     if (agenda)
       voteOrUnvote({
@@ -239,6 +280,7 @@ export const AgendaDetail = () => {
       });
     }
   };
+
   return (
     <div
       key={`agenda-detail-${agenda?.id}`}
@@ -263,21 +305,20 @@ export const AgendaDetail = () => {
                 by {agendaAuthor ? agendaAuthor.name : "Unknown"}
                 <span className="ml-3">{parseDate(agenda?.createdAt)}</span>
               </span>
-              {meData?.me.id === data?.findAgendaById.agenda?.author?.id &&
-                agenda && (
-                  <button
-                    onClick={() => {
-                      onDeleteAgendaClick(agenda?.id);
-                    }}
-                    className="hover:text-red-800"
-                  >
-                    <FontAwesomeIcon
-                      className="mx-2 cursor-pointer"
-                      icon={solid("trash-can")}
-                    />
-                    투표 삭제
-                  </button>
-                )}
+              {meData?.me.id === agenda?.author?.id && agenda && (
+                <button
+                  onClick={() => {
+                    onDeleteAgendaClick(agenda?.id);
+                  }}
+                  className="hover:text-red-800"
+                >
+                  <FontAwesomeIcon
+                    className="mx-2 cursor-pointer"
+                    icon={solid("trash-can")}
+                  />
+                  투표 삭제
+                </button>
+              )}
             </div>
 
             <div
@@ -377,7 +418,8 @@ export const AgendaDetail = () => {
             </div>
           )}
           {typeof showChart === "number" &&
-            agenda?.opinions[showChart].vote && (
+            agenda &&
+            data?.getAgendaAndStatsById.agendaDetail && (
               <div className="bg-orange-100 rounded-xl transition-all">
                 <div className="ml-5 text-base text-gray-500 flex justify-between">
                   <span>
@@ -389,9 +431,12 @@ export const AgendaDetail = () => {
                   </span>
                 </div>
                 <AgendaChart
-                  votedUser={agenda?.opinions[showChart].vote.map(
-                    (v) => v.user
-                  )}
+                  agendaChartStats={
+                    data.getAgendaAndStatsById.agendaDetail.agendaChartStatsArr[
+                      showChart
+                    ]
+                  }
+                  votedUserCount={agenda?.opinions[showChart].votedUserCount}
                 />
               </div>
             )}

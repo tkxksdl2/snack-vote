@@ -1,4 +1,5 @@
 export const CONFIG_OPTIONS = 'CONFIG_OPTIONS';
+export const LRU_CACHE = 'LRU_CACHE';
 export const PAGINATION_UNIT = 10;
 export const PAGINATION_UNIT_COMMENTS = 30;
 export const MAINPAGE_AGENDAS_UNIT = 6;

@@ -3,7 +3,9 @@ import { Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
+import { LRUCache } from 'lru-cache';
 import {
+  LRU_CACHE,
   MAINPAGE_AGENDAS_UNIT,
   PAGINATION_UNIT,
 } from 'src/common/common.constants';
@@ -12,9 +14,13 @@ import { expectCalledTimesAndWith } from 'test/hook/test-hook';
 import { ILike, In, Not, Repository } from 'typeorm';
 import { AgendaRepository } from './agenda.repository';
 import { AgendaService } from './agenda.service';
+import { AgendaDetailSummaryFactory } from './classes/agenda-detail-summary-factory';
+import { AgendaDetailSummary } from './dtos/get-agenda-and-stats-by-id.dto';
 import { Category } from './entities/agenda.entity';
 import { Opinion } from './entities/opinion.entity';
 import { Vote } from './entities/vote.entity';
+
+jest.mock('./classes/agenda-detail-summary-factory');
 
 const mockRepository = () => ({
   find: jest.fn(),
@@ -28,14 +34,14 @@ const mockRepository = () => ({
   findAgendaIdByRecentVoteCount: jest.fn(),
 });
 
-const mockCacheManager = {
+const mockCacheManager = () => ({
   set: jest.fn(),
   get: jest.fn(),
   del: jest.fn(),
   store: {
     keys: jest.fn(),
   },
-};
+});
 
 const USER = {
   id: 1,
@@ -57,6 +63,7 @@ describe('AgendaService', () => {
   let opinionRepository: MockRepository<Opinion>;
   let voteRepository: MockRepository<Vote>;
   let voteCache: Cache;
+  let lruCache: LRUCache<number, AgendaDetailSummary>;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
@@ -77,7 +84,11 @@ describe('AgendaService', () => {
         },
         {
           provide: CACHE_MANAGER,
-          useValue: mockCacheManager,
+          useValue: mockCacheManager(),
+        },
+        {
+          provide: LRU_CACHE,
+          useValue: mockCacheManager(),
         },
       ],
     }).compile();
@@ -86,10 +97,61 @@ describe('AgendaService', () => {
     opinionRepository = module.get(getRepositoryToken(Opinion));
     voteRepository = module.get(getRepositoryToken(Vote));
     voteCache = module.get<Cache>(CACHE_MANAGER);
+    lruCache = module.get<LRUCache<number, AgendaDetailSummary>>(LRU_CACHE);
   });
   afterEach(() => {
     jest.clearAllMocks();
     jest.restoreAllMocks();
+  });
+
+  describe('getAgendaAndStatsById', () => {
+    it('should cache hit and find agendaSummary', async () => {
+      jest.spyOn(lruCache, 'get').mockImplementation(
+        jest.fn().mockReturnValue({
+          agenda: { id: 1, opinions: [{ id: 2 }, { id: 3 }] },
+        }),
+      );
+      voteRepository.findOne.mockResolvedValue('EXISTS');
+
+      const result = await service.getAgendaAndStatsById({ id: 1, userId: 1 });
+
+      expect(result.ok).toBeTruthy();
+      expect(result.agendaDetail.agenda.id).toBe(1);
+      expect(voteRepository.findOne).toHaveBeenCalledTimes(2);
+    });
+
+    it('should cache miss and make AgendaSummary and return', async () => {
+      jest.spyOn(lruCache, 'get').mockReturnValueOnce(undefined);
+      jest
+        .spyOn(service, 'findAgendaById')
+        .mockImplementationOnce(
+          jest.fn().mockResolvedValue({ ok: true, agenda: 'AGENDA' }),
+        );
+
+      jest
+        .spyOn(AgendaDetailSummaryFactory.prototype, 'makeSummary')
+        .mockImplementationOnce(jest.fn().mockReturnValue('SUMMARY'));
+      jest
+        .spyOn(AgendaDetailSummaryFactory.prototype, 'getIsUserVotedOpinion')
+        .mockImplementationOnce(jest.fn());
+
+      const result = await service.getAgendaAndStatsById({ id: 1, userId: 1 });
+
+      expect(result.ok).toBeTruthy();
+      expect(result.agendaDetail).toBe('SUMMARY');
+      expect(lruCache.set).toHaveBeenCalledWith(1, 'SUMMARY');
+      expect(AgendaDetailSummaryFactory).toHaveBeenCalledTimes(1);
+    });
+
+    it('should fail on exception', async () => {
+      jest.spyOn(lruCache, 'get').mockReturnValueOnce(undefined);
+      jest.spyOn(service, 'findAgendaById').mockRejectedValue(new Error());
+
+      const result = await service.getAgendaAndStatsById({ id: 1, userId: 1 });
+
+      expect(result.ok).toBeFalsy();
+      expect(result.error).toBeDefined();
+    });
   });
 
   describe('findAgendaById', () => {

@@ -1,10 +1,11 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  LRU_CACHE,
   MAINPAGE_AGENDAS_UNIT,
   PAGINATION_UNIT,
 } from 'src/common/common.constants';
-import { User, UserRole } from 'src/users/entities/user.entity';
+import { Sex, User, UserRole } from 'src/users/entities/user.entity';
 import { ILike, In, Not, Repository } from 'typeorm';
 import {
   CreateAgendaInput,
@@ -47,6 +48,13 @@ import { Cron } from '@nestjs/schedule';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Transactional } from 'nestjs-transaction';
+import { LRUCache } from 'lru-cache';
+import {
+  AgendaDetailSummary,
+  GetAgendaAndStatsByIdInput,
+  GetAgendaAndStatsByIdOutput,
+} from './dtos/get-agenda-and-stats-by-id.dto';
+import { AgendaDetailSummaryFactory } from './classes/agenda-detail-summary-factory';
 
 @Injectable()
 export class AgendaService implements OnModuleInit {
@@ -58,6 +66,8 @@ export class AgendaService implements OnModuleInit {
     private readonly votes: Repository<Vote>,
     @Inject(CACHE_MANAGER)
     private readonly voteCache: Cache,
+    @Inject(LRU_CACHE)
+    private readonly lruCache: LRUCache<number, AgendaDetailSummary>,
   ) {}
 
   private mostVotedAgendas: Agenda[];
@@ -107,6 +117,43 @@ export class AgendaService implements OnModuleInit {
     return this.mostVotedAgendas;
   }
 
+  async getAgendaAndStatsById({
+    id,
+    userId,
+  }: GetAgendaAndStatsByIdInput): Promise<GetAgendaAndStatsByIdOutput> {
+    try {
+      let summary = this.lruCache.get(id);
+
+      let isUserVotedOpinion: [boolean, boolean] = [false, false];
+
+      if (!summary) {
+        // 캐시 미스로 큰 쿼리 실행
+        const result = await this.findAgendaById({ id });
+        if (!result.ok) return result;
+
+        const factory = new AgendaDetailSummaryFactory(result.agenda, userId);
+
+        summary = factory.makeSummary();
+        isUserVotedOpinion = factory.getIsUserVotedOpinion();
+
+        this.lruCache.set(id, summary);
+      } else if (userId) {
+        // 캐시 히트로 사용자 투표 여부만 판단함
+        const opinions = summary.agenda.opinions;
+        for (let i = 0; i <= 1; i++) {
+          const exists = await this.findVoteByOpinionAndUser(
+            userId,
+            opinions[i].id,
+          );
+          if (exists) isUserVotedOpinion[i] = true;
+        }
+      }
+      return { ok: true, agendaDetail: summary, isUserVotedOpinion };
+    } catch (e) {
+      return { ok: false, error: "Couldn't find agenda" };
+    }
+  }
+
   async findAgendaById({
     id,
   }: FindAgendaByIdInput): Promise<FindAgendaByIdOutput> {
@@ -127,6 +174,13 @@ export class AgendaService implements OnModuleInit {
     } catch {
       return { ok: false, error: "Couldn't find agenda" };
     }
+  }
+
+  async findVoteByOpinionAndUser(userId: number, opinionId: number) {
+    console.log('hello');
+    return await this.votes.findOne({
+      where: { user: { id: userId }, opinion: { id: opinionId } },
+    });
   }
 
   async createAgenda(
@@ -304,7 +358,7 @@ export class AgendaService implements OnModuleInit {
 
       if (!votedOp) {
         return { ok: false, error: '투표하려는 의견은 존재하지 않습니다.' };
-      }   
+      }
 
       const selectedOpVote = await this.votes.findOne({
         where: { user: { id: authUser.id }, opinion: { id: voteOpinionId } },
@@ -318,9 +372,9 @@ export class AgendaService implements OnModuleInit {
       }
 
       if (selectedOpVote) {
-        return await this.unvote(authUser, selectedOpVote, votedOp);
+        return await this.unvote(authUser, agendaId, votedOp, selectedOpVote);
       } else {
-        return await this.vote(authUser, votedOp, agendaId);
+        return await this.vote(authUser, agendaId, votedOp);
       }
     } catch {
       return { ok: false, error: "Couldn't vote to opinion" };
@@ -329,8 +383,9 @@ export class AgendaService implements OnModuleInit {
 
   async unvote(
     authUser: User,
-    selectedOpVote: Vote,
+    agendaId: number,
     votedOp: Opinion,
+    selectedOpVote: Vote,
   ): Promise<VoteOrUnvoteOutput> {
     await this.votes.remove(selectedOpVote);
 
@@ -339,20 +394,31 @@ export class AgendaService implements OnModuleInit {
 
     await this.voteCache.del(`vote:user-${authUser.id}:opinion-${votedOp.id}`);
 
+    let summary = this.lruCache.get(agendaId);
+
+    summary = AgendaDetailSummaryFactory.summaryAddVote(
+      summary,
+      authUser,
+      votedOp,
+      -1,
+    );
+    this.lruCache.set(agendaId, summary);
+
     return {
       ok: true,
       message: '투표를 취소했습니다.',
       voteCount: votedOp.votedUserCount,
       opinionId: votedOp.id,
       voteId: selectedOpVote.id,
+      opinionType: votedOp.opinionType,
       resultType: 'unvote',
     };
   }
 
   async vote(
     authUser: User,
-    votedOp: Opinion,
     agendaId: number,
+    votedOp: Opinion,
   ): Promise<VoteOrUnvoteOutput> {
     votedOp.votedUserCount += 1;
     await this.opinions.save(votedOp);
@@ -365,6 +431,16 @@ export class AgendaService implements OnModuleInit {
       `vote:user-${authUser.id}:opinion-${votedOp.id}`,
       agendaId,
     );
+
+    let summary = this.lruCache.get(agendaId);
+
+    summary = AgendaDetailSummaryFactory.summaryAddVote(
+      summary,
+      authUser,
+      votedOp,
+      1,
+    );
+    this.lruCache.set(agendaId, summary);
 
     return {
       ok: true,

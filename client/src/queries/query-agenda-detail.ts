@@ -1,10 +1,10 @@
 import { gql } from "@apollo/client";
-import { AGENDA_DETAIL_FRAGMENT, COMMENT_FRAGMENT } from "./fragments";
+import { AGENDA_FRAGMENT, COMMENT_FRAGMENT } from "./fragments";
 
 export const GET_AGENDA_AND_COMMENTS = gql`
   query getAgendaAndComments(
     $commentsInput: GetCommentsByAgendaInput!
-    $agendaInput: FindAgendaByIdInput!
+    $agendaInput: GetAgendaAndStatsByIdInput!
   ) {
     getCommentsByAgenda(input: $commentsInput) {
       ok
@@ -14,20 +14,23 @@ export const GET_AGENDA_AND_COMMENTS = gql`
         ...CommentParts
       }
     }
-    findAgendaById(input: $agendaInput) {
+    getAgendaAndStatsById(input: $agendaInput) {
       ok
       error
-      agenda {
-        ...AgendaDetailParts
-        author {
-          id
-          name
+      agendaDetail {
+        agenda {
+          ...AgendaParts
+        }
+        agendaChartStatsArr {
+          sexData
+          ageData
         }
       }
+      isUserVotedOpinion
     }
   }
   ${COMMENT_FRAGMENT}
-  ${AGENDA_DETAIL_FRAGMENT}
+  ${AGENDA_FRAGMENT}
 `;
 
 export const VOTE_OR_UNVOTE = gql`
