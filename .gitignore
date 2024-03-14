@@ -9,7 +9,7 @@
 **/test-queries.txt
 **/media/image/**
 
-k6
+/k6
 
 # IDE
 /.idea
