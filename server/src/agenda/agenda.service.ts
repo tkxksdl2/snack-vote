@@ -47,7 +47,7 @@ import { Agenda } from './entities/agenda.entity';
 import { Cron } from '@nestjs/schedule';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { Transactional } from 'nestjs-transaction';
+import { Transactional, runOnTransactionCommit } from 'nestjs-transaction';
 import { LRUCache } from 'lru-cache';
 import {
   AgendaDetailSummary,
@@ -84,7 +84,7 @@ export class AgendaService implements OnModuleInit {
       else
         Logger.log('Cannot load initial most voted agendas', 'AgendaService');
     } catch (e) {
-      console.log(e);
+      Logger.error(e);
     }
   }
 
@@ -113,7 +113,7 @@ export class AgendaService implements OnModuleInit {
         Logger.log('Renew has failed', 'AgendaService');
       }
     } catch (e) {
-      Logger.log(e);
+      Logger.error(e);
     }
   }
 
@@ -189,7 +189,6 @@ export class AgendaService implements OnModuleInit {
   }
 
   async findVoteByOpinionAndUser(userId: number, opinionId: number) {
-    console.log('hello');
     return await this.votes.findOne({
       where: { user: { id: userId }, opinion: { id: opinionId } },
     });
@@ -404,17 +403,23 @@ export class AgendaService implements OnModuleInit {
     votedOp.votedUserCount -= 1;
     await this.opinions.save(votedOp);
 
-    await this.voteCache.del(`vote:user-${authUser.id}:opinion-${votedOp.id}`);
+    runOnTransactionCommit(async () => {
+      await this.voteCache.del(
+        `vote:user-${authUser.id}:opinion-${votedOp.id}`,
+      );
 
-    let summary = this.lruCache.get(agendaId);
+      let summary = this.lruCache.get(agendaId);
+      if (summary) {
+        summary = AgendaDetailSummaryFactory.summaryAddVote(
+          summary,
+          authUser,
+          votedOp,
+          -1,
+        );
+      }
 
-    summary = AgendaDetailSummaryFactory.summaryAddVote(
-      summary,
-      authUser,
-      votedOp,
-      -1,
-    );
-    this.lruCache.set(agendaId, summary);
+      this.lruCache.set(agendaId, summary);
+    });
 
     return {
       ok: true,
@@ -439,20 +444,23 @@ export class AgendaService implements OnModuleInit {
       this.votes.create({ user: authUser, opinion: votedOp }),
     );
 
-    this.voteCache.set(
-      `vote:user-${authUser.id}:opinion-${votedOp.id}`,
-      agendaId,
-    );
+    runOnTransactionCommit(async () => {
+      this.voteCache.set(
+        `vote:user-${authUser.id}:opinion-${votedOp.id}`,
+        agendaId,
+      );
 
-    let summary = this.lruCache.get(agendaId);
-
-    summary = AgendaDetailSummaryFactory.summaryAddVote(
-      summary,
-      authUser,
-      votedOp,
-      1,
-    );
-    this.lruCache.set(agendaId, summary);
+      let summary = this.lruCache.get(agendaId);
+      if (summary) {
+        summary = AgendaDetailSummaryFactory.summaryAddVote(
+          summary,
+          authUser,
+          votedOp,
+          1,
+        );
+        this.lruCache.set(agendaId, summary);
+      }
+    });
 
     return {
       ok: true,

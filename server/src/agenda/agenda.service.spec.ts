@@ -394,7 +394,7 @@ describe('AgendaService', () => {
         .spyOn(service, 'getMostVotedAgendas')
         .mockRejectedValueOnce(INTERNAL_ERROR);
       const logSpy = jest
-        .spyOn(console, 'log')
+        .spyOn(Logger, 'error')
         .mockImplementationOnce(jest.fn());
       await service.onModuleInit();
       expect(logSpy).toHaveBeenCalledTimes(1);
@@ -444,10 +444,14 @@ describe('AgendaService', () => {
       );
     });
     it('should fail on exception', async () => {
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(jest.fn());
       const e = new Error();
       jest.spyOn(voteCache.store, 'keys').mockRejectedValue(e);
+
       await service.setMostVotedAgendas();
-      expect(logSpy).toHaveBeenCalledWith(e);
+      expect(errorSpy).toHaveBeenCalledWith(e);
     });
   });
 
